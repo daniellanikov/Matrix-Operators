@@ -1,5 +1,6 @@
 #include<iostream>
 #include<Python.h>
+#include<arrayobject.h>
 
 static PyObject* 
 
@@ -16,21 +17,18 @@ static char lofasz[] = "hello";
 
 static PyObject*
 vector(PyObject* self, PyObject* arg) {
-	/**
-	class Vector {
 
-	public:
-		Vector() {};
-		Vector(int length) {}
-		~Vector() {}
-	};
-	//dostuff
+	PyObject* tuple;
+	//PyArg_ParseTuple(arg, "O", &tuple);
 
-	float vectorArray[3] = { 1,2,3 }; */
-
-	int* tuple = NULL;
-	PyArg_ParseTuple(arg, "i", &tuple); 
-	return Py_BuildValue("i", tuple);
+	//std::cout << tuple->ob_refcnt;
+	PyArrayObject* arrayObject;
+	arrayObject = (PyArrayObject*)PyArray_FromAny(arg, NULL, 1, 3, NPY_ARRAY_DEFAULT, NULL);
+	std::cout << arrayObject;
+	//float data[3] = { 1,2,3 };
+	//int dims[1] = { 3 };
+	//tuple = PyArray_FromDimsAndData(1, dims, PyArray_FLOAT32, data*);
+	return PyArray_Return(arrayObject);
 }
 
 static PyMethodDef module_methods[] = {

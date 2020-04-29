@@ -1,6 +1,7 @@
 import HelloModule
+import numpy as np
 
-#HelloModule.hello()
-print("lofasz")
-print(HelloModule.vector(12))
+arrVector = np.array([1, 2, 3])
+
+print(HelloModule.vector(arrVector))
 
