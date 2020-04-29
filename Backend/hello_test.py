@@ -1,3 +1,6 @@
 import HelloModule
 
-HelloModule.hello()
+#HelloModule.hello()
+print("lofasz")
+print(HelloModule.vector())
+
