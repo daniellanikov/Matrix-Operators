@@ -26,10 +26,11 @@ vector(PyObject* self, PyObject* arg) {
 	};
 	//dostuff
 
-	float vectorArray[3] = { 1,2,3 }; 
+	float vectorArray[3] = { 1,2,3 }; */
 
-	int tuple = PyArg_ParseTuple(arg, "i"); */
-	return Py_BuildValue("i", 69);
+	int* tuple = NULL;
+	PyArg_ParseTuple(arg, "i", &tuple); 
+	return Py_BuildValue("i", tuple);
 }
 
 static PyMethodDef module_methods[] = {
