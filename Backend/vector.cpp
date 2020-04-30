@@ -23,17 +23,17 @@ vector(PyObject* self, PyObject* arg) {
 		return 0;
 	}
 	float sum;
-	float* vectorSum = (float*)malloc(sizeof(float)*3);
 	float* data = (float*)PyArray_DATA(arrayVector1);
 	npy_intp* ndShape = PyArray_SHAPE(arrayVector1);
 	float* data2 = (float*)PyArray_DATA(arrayVector2);
 	int size = ndShape[0];
+	float* vectorSum = (float*)malloc(sizeof(float) * size);
 	for (int i = 0; i < size; i++)
 	{
 		sum = data[i] + data2[i];
 		vectorSum[i] = sum;
 	}
-	npy_intp sizeSum[] = { 3 };
+	npy_intp sizeSum[] = { size };
 	arrayVectorSum = (PyArrayObject*)PyArray_SimpleNewFromData(1, sizeSum, NPY_FLOAT32, (void*)vectorSum);
 	Py_DECREF(arrayVector1);
 	Py_DECREF(arrayVector2);
