@@ -1,13 +1,39 @@
 #include<iostream>
 #include<Python.h>
 #include<arrayobject.h>
-
+#include "structmember.h"
 
 typedef struct {
 	PyObject_HEAD;
 	float* data;
 	int size;
 }Vector;
+
+static PyTypeObject vector_VectorType = { PyObject_HEAD_INIT(NULL) NULL };
+
+static int getArrayAndSize(PyObject* args, PyArrayObject* object) {
+
+	PyObject* pyObject;
+	PyArg_ParseTuple(args, "O!", &PyArray_Type, &pyObject);
+	if (pyObject == NULL)
+	{
+		std::cout << "Argument parse failed" << std::endl;
+		throw std::invalid_argument("received negative value");
+	}
+	object = (PyArrayObject*)PyArray_ContiguousFromAny(pyObject, PyArray_FLOAT32, 0, 2);
+	if (object == NULL) {
+		std::cout << "Arrayobject cast failed" << std::endl;
+		throw std::invalid_argument("received negative value");
+	}
+	int dims = PyArray_NDIM(object);
+	if (dims != 1) {
+		std::cout << "Argument is not a vector" << std::endl;
+		throw std::invalid_argument("received negative value");
+	}
+	npy_intp* ndShape = PyArray_SHAPE(object);
+	Py_DECREF(pyObject);
+	return ndShape[0];
+}
 
 //initconstructor
 static PyObject* Vector_init(Vector* self, PyObject* args) {
@@ -43,29 +69,7 @@ static void Vector_dealloc(Vector* self) {
 }
 
 
-static int getArrayAndSize(PyObject* args, PyArrayObject* object) {
 
-	PyObject* pyObject;
-	PyArg_ParseTuple(args, "O!", &PyArray_Type, &pyObject);
-	if (pyObject == NULL)
-	{
-		std::cout << "Argument parse failed" << std::endl;
-		throw std::invalid_argument("received negative value");
-	}
-	object = (PyArrayObject*)PyArray_ContiguousFromAny(pyObject, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL);
-	if (object == NULL) {
-		std::cout << "Arrayobject cast failed" << std::endl;
-		throw std::invalid_argument("received negative value");
-	}
-	int dims = PyArray_NDIM(object);
-	if (dims != 1) {
-		std::cout << "Argument is not a vector" << std::endl;
-		throw std::invalid_argument("received negative value");
-	}
-	npy_intp* ndShape = PyArray_SHAPE(object);
-	Py_DECREF(pyObject);
-	return ndShape[0];
-}
 
 
 static PyObject* VectorSum(Vector* vector1, Vector* vector2) {
@@ -90,9 +94,36 @@ static PyObject* VectorSum(Vector* vector1, Vector* vector2) {
 	return result;
 }
 
+static PyMethodDef vector_methods[] = {
+	{ "vectorSum", (PyCFunction)VectorSum, METH_VARARGS},
+	{ "getArrayAndSize", (PyCFunction)getArrayAndSize, METH_VARARGS},
+	{NULL}
+};
+
+static PyMemberDef vector_members[] = {
+	{"size",  /* name */
+	 offsetof(Vector, size),  /* offset */
+	 T_INT,  /* type */
+	 READONLY,  /* flags */
+	 NULL  /* docstring */}
+};
 
 static PyNumberMethods vectorNumberMethods = { NULL };
 
+
+static struct PyModuleDef VectorModule = {
+	PyModuleDef_HEAD_INIT,
+	"VectorModule",
+	"documentation is here",
+	-1,
+	vector_methods
+};
+
+
+
+#ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
+#define PyMODINIT_FUNC void
+#endif
 PyMODINIT_FUNC PyInit_VectorModule(void)
 {
 	import_array();
@@ -101,15 +132,18 @@ PyMODINIT_FUNC PyInit_VectorModule(void)
 	vector_VectorType.tp_name = "vector.Vector";
 	vector_VectorType.tp_basicsize = sizeof(Vector);
 	vector_VectorType.tp_dealloc = (destructor)Vector_dealloc;
-	vector_VectorType.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+	vector_VectorType.tp_flags = Py_TPFLAGS_DEFAULT;
 	vector_VectorType.tp_doc = "Vector objects";
-	vector_VectorType.tp_methods = Vector_methods;
-	vector_VectorType.tp_members = Vector_members;
+	vector_VectorType.tp_methods = vector_methods;
+	vector_VectorType.tp_members = vector_members;
 	vector_VectorType.tp_init = (initproc)Vector_init;
 	vector_VectorType.tp_new = Vector_new;
+	PyObject* m;
+
+	if (PyType_Ready(&vector_VectorType) < 0)
+		return;
+	m = PyModule_Create(&VectorModule);
+	Py_INCREF(&vector_VectorType);
+	PyModule_AddObject(m, "vector", (PyObject*)& vector_VectorType);
 	return PyModule_Create(&VectorModule);
 }
-
-
-
-static PyTypeObject vector_VectorType = { PyObject_HEAD_INIT(NULL) };
