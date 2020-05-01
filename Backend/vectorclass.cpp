@@ -12,71 +12,59 @@ typedef struct {
 //initconstructor
 static PyObject* Vector_init(Vector* self, PyObject* args) {
 
-	PyObject* object;
-	PyArg_ParseTuple(args, "O!", &PyArray_Type, &object);
-	if (object == NULL)
-	{
-		std::cout << "Argument parse failed" << std::endl;
-		throw std::invalid_argument("received negative value");
-	}
-	PyArrayObject* arrayobject;
-	arrayobject = (PyArrayObject*)PyArray_ContiguousFromAny(object, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL);
-	if (arrayobject == NULL) {
-		std::cout << "Arrayobject cast failed" << std::endl;
-		throw std::invalid_argument("received negative value");
-	}
-	int dims = PyArray_NDIM(arrayobject);
-	if (dims != 1) {
-		std::cout << "Argument is not a vector" << std::endl;
-		throw std::invalid_argument("received negative value");
-	}
-	float* objectData = (float*)PyArray_DATA(arrayobject);
-	npy_intp* ndShape1 = PyArray_SHAPE(arrayobject);
+	PyArrayObject* object;
+	int size = getArrayAndSize(args, object);
 
-	self->data = (float*)malloc(sizeof(float) * ndShape1[0]);;
-	self->size = ndShape1[0];
+	self->data = (float*)malloc(sizeof(float) * size);;
+	self->size = size;
 	for (int i = 0; i < self->size; i++)
 	{
-		self->data[i] = objectData[i];
+		self->data[i] = object->data[i];
 	}
-
-	Py_DECREF(arrayobject);
+	Py_DECREF(object);
 	return Py_None;
 }
 
-
+//Instantiate
 static PyObject* Vector_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	Vector* self;
 
-	PyObject* object;
-	PyArg_ParseTuple(args, "O!", &PyArray_Type, &object);
-	if (object == NULL)
+	PyArrayObject* arrayObject;
+	int size = getArrayAndSize(args, arrayObject);
+
+	self = (Vector*)type->tp_alloc(type, size + sizeof(int));
+	Py_DECREF(arrayObject);
+	return (PyObject*)self;
+}
+
+static void Vector_dealloc(Vector* self) {
+	free(self->data);
+	self->ob_base.ob_type->tp_free((PyObject*)self);
+}
+
+
+static int getArrayAndSize(PyObject* args, PyArrayObject* object) {
+
+	PyObject* pyObject;
+	PyArg_ParseTuple(args, "O!", &PyArray_Type, &pyObject);
+	if (pyObject == NULL)
 	{
 		std::cout << "Argument parse failed" << std::endl;
 		throw std::invalid_argument("received negative value");
-
 	}
-	PyArrayObject* arrayobject;
-	arrayobject = (PyArrayObject*)PyArray_ContiguousFromAny(object, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL);
-	if (arrayobject == NULL) {
+	object = (PyArrayObject*)PyArray_ContiguousFromAny(pyObject, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL);
+	if (object == NULL) {
 		std::cout << "Arrayobject cast failed" << std::endl;
 		throw std::invalid_argument("received negative value");
 	}
-	int dims = PyArray_NDIM(arrayobject);
+	int dims = PyArray_NDIM(object);
 	if (dims != 1) {
 		std::cout << "Argument is not a vector" << std::endl;
 		throw std::invalid_argument("received negative value");
 	}
-	npy_intp* ndShape = PyArray_SHAPE(arrayobject);
-
-	self = (Vector*)type->tp_alloc(type, ndShape[0] + sizeof(int));
-	return (PyObject*)self;
-}
-
-static void
-Vector_dealloc(Vector* self) {
-	free(self->data);
-	self->ob_base.ob_type->tp_free((PyObject*)self);
+	npy_intp* ndShape = PyArray_SHAPE(object);
+	Py_DECREF(pyObject);
+	return ndShape[0];
 }
 
 
@@ -102,12 +90,13 @@ static PyObject* VectorSum(Vector* vector1, Vector* vector2) {
 	return result;
 }
 
+
 static PyNumberMethods vectorNumberMethods = { NULL };
 
 PyMODINIT_FUNC PyInit_VectorModule(void)
 {
 	import_array();
-	vectorNumberMethods.nb_add = (binaryfunc)VectorSum;
+	vectorNumberMethods.nb_add = (binaryfunc)VectorSum; //operator+ overload
 	vector_VectorType.tp_as_number = &vectorNumberMethods;
 	vector_VectorType.tp_name = "vector.Vector";
 	vector_VectorType.tp_basicsize = sizeof(Vector);
