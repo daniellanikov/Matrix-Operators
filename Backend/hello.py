@@ -1,10 +1,10 @@
 #!python
 from distutils.core import setup, Extension
 
-HelloModule = Extension('HelloModule',
-                    sources = ['hello.cpp'])
+VectorModule = Extension('VectorModule',
+                    sources = ['vector.cpp'])
 
-setup (name = 'HelloModule',
+setup (name = 'VectorModule',
        version = '1.0',
        description = 'This is a demo package',
-       ext_modules = [HelloModule])
+       ext_modules = [VectorModule])
