@@ -40,6 +40,8 @@ static int getArrayAndSize(PyObject* args, PyArrayObject* object) {
 	return ndShape[0];
 }
 
+
+//initconstructor
 static PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds) {
 	
 	PyArrayObject* object = NULL;
@@ -65,6 +67,57 @@ static PyObject* Vector_new(PyTypeObject* type, PyObject* args, PyObject* kwds) 
 }
 
 
+static void Vector_dealloc(vector_VectorObject* self) {
+	self->data->ob_type->tp_free(self->data); //explanation needed
+	self->ob_base.ob_type->tp_free((PyObject*)self);
+}
+
+
+static PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* vector2) {
+
+	if (vector1->size != vector2->size)
+	{
+		std::cout << "Vector legth mismatch" << std::endl;
+		throw std::invalid_argument("received negative value");
+	}
+	std::cout << "loszar1" << std::endl;
+	PyArrayObject* arrayObject1;
+	PyArrayObject* arrayObject2;
+	arrayObject1 = (PyArrayObject*)vector1;
+
+	std::cout << "loszar2" << std::endl;
+
+
+	arrayObject2 = (PyArrayObject*)vector2;
+
+	std::cout << "loszar3" << std::endl;
+
+
+	float* sum = (float*)malloc(sizeof(float) * vector1->size);
+	float* vectorData1 = (float*)PyArray_DATA(arrayObject1);
+	float* vectorData2 = (float*)PyArray_DATA(arrayObject2);
+
+	std::cout << "loszar4" << std::endl;
+
+	for (int i = 0; i < vector1->size; i++)
+	{
+		sum[i] = vectorData1[i] + vectorData2[i];
+	}
+
+	PyObject* result;
+	int* dims = (int*)malloc(sizeof(int));
+	dims[0] = vector1->size;
+	PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT32, sum);
+
+	std::cout << "loszar5" << std::endl;
+	PyObject* arg = Py_BuildValue("O", array);
+
+	std::cout << "loszar6" << std::endl;
+	result = PyObject_CallObject((PyObject*)& vector_VectorType, arg);
+	return result;
+}
+
+
 static PyModuleDef vectormodule = {
 	PyModuleDef_HEAD_INIT,
 	"VectorModule",
@@ -87,16 +140,19 @@ static PyMemberDef vector_members[] = {
 	 NULL  /* docstring */}
 };
 
+static PyNumberMethods vectorNumberMethods = { NULL };
 
 PyMODINIT_FUNC
 PyInit_VectorModule(void)
 {
 	PyObject* m;
-
+	vectorNumberMethods.nb_add = (binaryfunc)VectorSum; //operator+ overload
 	vector_VectorType.tp_new = Vector_new;
+	vector_VectorType.tp_as_number = &vectorNumberMethods;
 	vector_VectorType.tp_basicsize = sizeof(vector_VectorObject);
 	vector_VectorType.tp_members = vector_members;
 	vector_VectorType.tp_init = (initproc)vector_init;
+	vector_VectorType.tp_dealloc = (destructor)Vector_dealloc;
 	if (PyType_Ready(&vector_VectorType) < 0)
 		return NULL;
 
