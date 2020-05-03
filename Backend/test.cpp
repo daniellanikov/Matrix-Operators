@@ -46,15 +46,14 @@ static int getArrayAndSize(PyObject* args, PyArrayObject* object) {
 //initconstructor
 static PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds) {
 	
-	PyArrayObject* object = NULL;
 	PyObject* pyObject = NULL;
 	PyArg_ParseTuple(args, "O", &pyObject);
+
 	if (pyObject == NULL)
 	{
-		std::cout << "Argument parse failed" << std::endl;
+		std::cout << "Argument parse failed" << std::endl; //TODO: change to python exception handling
 		throw std::invalid_argument("received negative value");
 	}
-	//std::cout << "value1: " << ((float*)PyArray_DATA((PyArrayObject*)pyObject))[0] << std::endl;
 	int size = PyArray_SHAPE((PyArrayObject*)(pyObject))[0];
 	self->data = pyObject;
 	self->size = size;
@@ -70,8 +69,13 @@ static PyObject* Vector_new(PyTypeObject* type, PyObject* args, PyObject* kwds) 
 
 
 static void Vector_dealloc(vector_VectorObject* self) {
-	self->data->ob_type->tp_free(self->data); //explanation needed
+	self->data->ob_type->tp_free(self->data);
 	self->ob_base.ob_type->tp_free((PyObject*)self);
+}
+
+PyObject* toNumpy(PyObject* self) {
+	PyObject* data = ((vector_VectorObject*)self)->data;
+	return PyArray_Return((PyArrayObject*)PyArray_ContiguousFromAny(data, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL));
 }
 
 
@@ -94,7 +98,6 @@ static PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* ve
 	for (int i = 0; i < vector1->size; i++)
 	{
 		sum[i] = vectorData1[i] + vectorData2[i];
-		std::cout << "sum: " << sum[i] << std::endl;
 	}
 	PyObject* result;
 	npy_intp* dims = (npy_intp*)malloc(sizeof(npy_intp*));
@@ -104,7 +107,7 @@ static PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* ve
 	array = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)sum);
 	PyObject* arg = Py_BuildValue("(O)", array);
 	result = PyObject_CallObject((PyObject*)& vector_VectorType, arg);
-
+	Py_INCREF(result);
 	return result;
 }
 
@@ -136,7 +139,7 @@ static PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObje
 	array = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)sum);
 	PyObject* arg = Py_BuildValue("(O)", array);
 	result = PyObject_CallObject((PyObject*)& vector_VectorType, arg);
-
+	Py_INCREF(result);
 	return result;
 }
 
@@ -164,6 +167,12 @@ static PyModuleDef vectormodule = {
 	-1,
 	NULL, NULL, NULL, NULL, NULL
 };
+
+static PyMethodDef vector_methods[] = {
+	{ "toNumpy", (PyCFunction)toNumpy, METH_VARARGS},
+	{NULL}
+};
+
 
 static PyMemberDef vector_members[] = {
 	{"size",  /* name */
@@ -193,6 +202,7 @@ PyInit_VectorModule(void)
 	vector_VectorType.tp_basicsize = sizeof(vector_VectorObject);
 	vector_VectorType.tp_members = vector_members;
 	vector_VectorType.tp_repr = repr;
+	vector_VectorType.tp_methods = vector_methods;
 	vector_VectorType.tp_init = (initproc)vector_init;
 	vector_VectorType.tp_dealloc = (destructor)Vector_dealloc;
 	if (PyType_Ready(&vector_VectorType) < 0)
