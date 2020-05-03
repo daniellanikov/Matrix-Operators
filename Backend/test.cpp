@@ -108,6 +108,38 @@ static PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* ve
 	return result;
 }
 
+static PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObject* vector2) {
+
+	if (vector1->size != vector2->size)
+	{
+		std::cout << "Vector legth mismatch" << std::endl;
+		throw std::invalid_argument("received negative value");
+	}
+
+	PyArrayObject* arrayObject1;
+	PyArrayObject* arrayObject2;
+	arrayObject1 = (PyArrayObject*)vector1->data;
+	arrayObject2 = (PyArrayObject*)vector2->data;
+	float* sum = (float*)malloc(sizeof(float) * vector1->size);
+	float* vectorData1 = (float*)PyArray_DATA(arrayObject1);
+	float* vectorData2 = (float*)PyArray_DATA(arrayObject2);
+
+	for (int i = 0; i < vector1->size; i++)
+	{
+		sum[i] = vectorData1[i] - vectorData2[i];
+	}
+	PyObject* result;
+	npy_intp* dims = (npy_intp*)malloc(sizeof(npy_intp*));
+	dims[0] = vector1->size;
+	int ndim = PyArray_NDIM(vector1->data);
+	PyArrayObject* array = NULL;
+	array = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)sum);
+	PyObject* arg = Py_BuildValue("(O)", array);
+	result = PyObject_CallObject((PyObject*)& vector_VectorType, arg);
+
+	return result;
+}
+
 static PyObject* repr(PyObject* self) {
 	std::string lofasz;
 	std::stringstream valami;
@@ -155,6 +187,7 @@ PyInit_VectorModule(void)
 	import_array();
 	PyObject* m;
 	vectorNumberMethods.nb_add = (binaryfunc)VectorSum; //operator+ overload
+	vectorNumberMethods.nb_subtract = (binaryfunc)VectorSubstract; //operator- overload
 	vector_VectorType.tp_new = Vector_new;
 	vector_VectorType.tp_as_number = &vectorNumberMethods;
 	vector_VectorType.tp_basicsize = sizeof(vector_VectorObject);
