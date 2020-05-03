@@ -2,6 +2,8 @@
 #include<arrayobject.h>
 #include "structmember.h"
 #include<iostream>
+#include <string>
+#include <sstream>
 
 typedef struct {
 	PyObject_HEAD
@@ -52,10 +54,10 @@ static PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject
 		std::cout << "Argument parse failed" << std::endl;
 		throw std::invalid_argument("received negative value");
 	}
+	//std::cout << "value1: " << ((float*)PyArray_DATA((PyArrayObject*)pyObject))[0] << std::endl;
 	int size = PyArray_SHAPE((PyArrayObject*)(pyObject))[0];
-	self->data = args;
+	self->data = pyObject;
 	self->size = size;
-	Py_DECREF(pyObject);
 	return Py_None;
 }
 
@@ -80,43 +82,48 @@ static PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* ve
 		std::cout << "Vector legth mismatch" << std::endl;
 		throw std::invalid_argument("received negative value");
 	}
-	std::cout << "loszar1" << std::endl;
+
 	PyArrayObject* arrayObject1;
 	PyArrayObject* arrayObject2;
-	arrayObject1 = (PyArrayObject*)vector1;
-
-	std::cout << "loszar2" << std::endl;
-
-
-	arrayObject2 = (PyArrayObject*)vector2;
-
-	std::cout << "loszar3" << std::endl;
-
-
+	arrayObject1 = (PyArrayObject*)vector1->data;
+	arrayObject2 = (PyArrayObject*)vector2->data;
 	float* sum = (float*)malloc(sizeof(float) * vector1->size);
 	float* vectorData1 = (float*)PyArray_DATA(arrayObject1);
 	float* vectorData2 = (float*)PyArray_DATA(arrayObject2);
 
-	std::cout << "loszar4" << std::endl;
-
 	for (int i = 0; i < vector1->size; i++)
 	{
 		sum[i] = vectorData1[i] + vectorData2[i];
+		std::cout << "sum: " << sum[i] << std::endl;
 	}
-
 	PyObject* result;
-	int* dims = (int*)malloc(sizeof(int));
+	npy_intp* dims = (npy_intp*)malloc(sizeof(npy_intp*));
 	dims[0] = vector1->size;
-	PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT32, sum);
-
-	std::cout << "loszar5" << std::endl;
-	PyObject* arg = Py_BuildValue("O", array);
-
-	std::cout << "loszar6" << std::endl;
+	int ndim = PyArray_NDIM(vector1->data);
+	PyArrayObject* array = NULL;
+	array = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)sum);
+	PyObject* arg = Py_BuildValue("(O)", array);
 	result = PyObject_CallObject((PyObject*)& vector_VectorType, arg);
+
 	return result;
 }
 
+static PyObject* repr(PyObject* self) {
+	std::string lofasz;
+	std::stringstream valami;
+
+	float* data = (float*)PyArray_DATA(((vector_VectorObject*)self)->data);
+	int size = ((vector_VectorObject*)self)->size;
+	valami << "<";
+	for (int i = 0; i < size; i++)
+	{
+		valami << " " << (int)data[i];
+	}
+	valami << " >";
+	lofasz = valami.str();
+	PyObject* result = Py_BuildValue("s", &lofasz);
+	return result;
+}
 
 static PyModuleDef vectormodule = {
 	PyModuleDef_HEAD_INIT,
@@ -145,12 +152,14 @@ static PyNumberMethods vectorNumberMethods = { NULL };
 PyMODINIT_FUNC
 PyInit_VectorModule(void)
 {
+	import_array();
 	PyObject* m;
 	vectorNumberMethods.nb_add = (binaryfunc)VectorSum; //operator+ overload
 	vector_VectorType.tp_new = Vector_new;
 	vector_VectorType.tp_as_number = &vectorNumberMethods;
 	vector_VectorType.tp_basicsize = sizeof(vector_VectorObject);
 	vector_VectorType.tp_members = vector_members;
+	vector_VectorType.tp_repr = repr;
 	vector_VectorType.tp_init = (initproc)vector_init;
 	vector_VectorType.tp_dealloc = (destructor)Vector_dealloc;
 	if (PyType_Ready(&vector_VectorType) < 0)
