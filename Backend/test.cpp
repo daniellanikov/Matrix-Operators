@@ -168,8 +168,43 @@ static PyObject* doScalarMulVector(PyObject* left, PyObject* right) {
 	args = Py_BuildValue("(O)", resultArrayObject);
 	resultVector = PyObject_CallObject((PyObject*)& vector_VectorType, args);
 	Py_INCREF(resultVector);
+	Py_DECREF(rightArrayObject);
 	return resultVector;
 }
+
+
+static PyObject* doVectorMulVector(PyObject* left, PyObject* right) {
+	//init
+	PyObject* resultVector;
+	vector_VectorObject* vector1 = NULL;
+	vector_VectorObject* vector2 = NULL;
+	float scalar = 0;
+
+	vector1 = (vector_VectorObject*)right;
+	vector2 = (vector_VectorObject*)left;
+	PyArrayObject* rightArrayObject = (PyArrayObject*)PyArray_ContiguousFromAny(vector1->data, PyArray_FLOAT32, 0, 1);
+	PyArrayObject* leftArrayObject = (PyArrayObject*)PyArray_ContiguousFromAny(vector2->data, PyArray_FLOAT32, 0, 1);
+	float* rightData = (float*)PyArray_DATA(rightArrayObject);
+	float* letfData = (float*)PyArray_DATA(leftArrayObject);
+	float* result = (float*)malloc(sizeof(float) * vector1->size);
+	for (int i = 0; i < vector1->size; i++)
+	{
+		result[i] = letfData[i] * rightData[i];
+	}
+	PyArrayObject* resultArrayObject = NULL;
+	npy_intp* dims = (npy_intp*)malloc(sizeof(npy_intp));
+	dims[0] = vector1->size;
+	int ndim = PyArray_NDIM(vector1->data);
+	resultArrayObject = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)result);
+	PyObject* args = NULL;
+	args = Py_BuildValue("(O)", resultArrayObject);
+	resultVector = PyObject_CallObject((PyObject*)& vector_VectorType, args);
+	Py_INCREF(resultVector);
+	Py_DECREF(rightArrayObject);
+	Py_DECREF(leftArrayObject);
+	return resultVector;
+}
+
 
 static PyObject* VectorMul(PyObject* left, PyObject* right) {
 	PyObject* returnValue = NULL;
@@ -185,6 +220,9 @@ static PyObject* VectorMul(PyObject* left, PyObject* right) {
 	else if (leftISAFloat == 0 && rightISAFloat == 1)
 	{
 		returnValue = doScalarMulVector(right, left);
+	}
+	else {
+		returnValue = doVectorMulVector(left, right);
 	}
 	return returnValue;
 }
