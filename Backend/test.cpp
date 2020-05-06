@@ -144,7 +144,7 @@ static PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObje
 	return result;
 }
 
-static PyObject* doScalarMulVector(PyObject* left, PyObject* right) {
+static PyObject* doScalarMulVector(PyObject* left, PyObject* right, int flipScalar) {
 	//init
 	PyObject* resultVector;
 	vector_VectorObject* vector = NULL;
@@ -152,6 +152,10 @@ static PyObject* doScalarMulVector(PyObject* left, PyObject* right) {
 
 	vector = (vector_VectorObject*)right;
 	PyArg_Parse(left, "f", &scalar);
+	if (flipScalar == 1) {
+
+		scalar = 1 / scalar;
+	}
 	PyArrayObject* rightArrayObject = (PyArrayObject*)PyArray_ContiguousFromAny(vector->data, PyArray_FLOAT32, 0, 1);
 	float* rightData = (float*)PyArray_DATA(rightArrayObject);
 	float* result = (float*)malloc(sizeof(float) * vector->size);
@@ -205,6 +209,9 @@ static PyObject* doVectorMulVector(PyObject* left, PyObject* right) {
 	return resultVector;
 }
 
+//TODO: change left arg to vector and right to scalar
+
+
 
 static PyObject* VectorMul(PyObject* left, PyObject* right) {
 	PyObject* returnValue = NULL;
@@ -215,11 +222,11 @@ static PyObject* VectorMul(PyObject* left, PyObject* right) {
 	int leftISAFloat = PyFloat_Check(left);
 	if (leftISAFloat == 1 && rightISAFloat == 0)
 	{
-		returnValue = doScalarMulVector(left, right);
+		returnValue = doScalarMulVector(left, right, 0);
 	}
 	else if (leftISAFloat == 0 && rightISAFloat == 1)
 	{
-		returnValue = doScalarMulVector(right, left);
+		returnValue = doScalarMulVector(right, left, 0);
 	}
 	else {
 		returnValue = doVectorMulVector(left, right);
@@ -227,7 +234,23 @@ static PyObject* VectorMul(PyObject* left, PyObject* right) {
 	return returnValue;
 }
 
-
+static PyObject* VectorDivision(PyObject* left, PyObject* right) {
+	PyObject* returnValue = NULL;
+	PyObject* resultVector;
+	vector_VectorObject* vector = NULL;
+	float scalar = 0;
+	int rightISAFloat = PyFloat_Check(right);
+	int leftISAFloat = PyFloat_Check(left);
+	if (leftISAFloat == 1 && rightISAFloat == 0)
+	{
+		std::cout << "Wrong order" << std::endl;
+	}
+	else
+	{
+		returnValue = doScalarMulVector(right, left, 1);
+	}
+	return returnValue;
+}
 
 
 static PyObject* repr(PyObject* self) {
@@ -285,6 +308,7 @@ PyInit_VectorModule(void)
 	vectorNumberMethods.nb_add = (binaryfunc)VectorSum; //operator+ overload
 	vectorNumberMethods.nb_subtract = (binaryfunc)VectorSubstract; //operator- overload
 	vectorNumberMethods.nb_multiply = (binaryfunc)VectorMul;
+	vectorNumberMethods.nb_true_divide = (binaryfunc)VectorDivision;
 	vector_VectorType.tp_new = Vector_new;
 	vector_VectorType.tp_as_number = &vectorNumberMethods;
 	vector_VectorType.tp_basicsize = sizeof(vector_VectorObject);
