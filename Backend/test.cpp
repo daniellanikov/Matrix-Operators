@@ -4,10 +4,11 @@
 #include<iostream>
 #include <string>
 #include <sstream>
+#include <floatobject.h>
 
 typedef struct {
 	PyObject_HEAD
-	PyObject* data;
+		PyObject* data;
 	int size;
 } vector_VectorObject;
 
@@ -45,7 +46,7 @@ static int getArrayAndSize(PyObject* args, PyArrayObject* object) {
 
 //initconstructor
 static PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds) {
-	
+
 	PyObject* pyObject = NULL;
 	PyArg_ParseTuple(args, "O", &pyObject);
 
@@ -132,7 +133,7 @@ static PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObje
 		sum[i] = vectorData1[i] - vectorData2[i];
 	}
 	PyObject* result;
-	npy_intp* dims = (npy_intp*)malloc(sizeof(npy_intp*));
+	npy_intp* dims = (npy_intp*)malloc(sizeof(npy_intp));
 	dims[0] = vector1->size;
 	int ndim = PyArray_NDIM(vector1->data);
 	PyArrayObject* array = NULL;
@@ -142,6 +143,54 @@ static PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObje
 	Py_INCREF(result);
 	return result;
 }
+
+static PyObject* doScalarMulVector(PyObject* left, PyObject* right) {
+	//init
+	PyObject* resultVector;
+	vector_VectorObject* vector = NULL;
+	float scalar = 0;
+
+	vector = (vector_VectorObject*)right;
+	PyArg_Parse(left, "f", &scalar);
+	PyArrayObject* rightArrayObject = (PyArrayObject*)PyArray_ContiguousFromAny(vector->data, PyArray_FLOAT32, 0, 1);
+	float* rightData = (float*)PyArray_DATA(rightArrayObject);
+	float* result = (float*)malloc(sizeof(float) * vector->size);
+	for (int i = 0; i < vector->size; i++)
+	{
+		result[i] = scalar * rightData[i];
+	}
+	PyArrayObject* resultArrayObject = NULL;
+	npy_intp* dims = (npy_intp*)malloc(sizeof(npy_intp));
+	dims[0] = vector->size;
+	int ndim = PyArray_NDIM(vector->data);
+	resultArrayObject = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)result);
+	PyObject* args = NULL;
+	args = Py_BuildValue("(O)", resultArrayObject);
+	resultVector = PyObject_CallObject((PyObject*)& vector_VectorType, args);
+	Py_INCREF(resultVector);
+	return resultVector;
+}
+
+static PyObject* VectorMul(PyObject* left, PyObject* right) {
+	PyObject* returnValue = NULL;
+	PyObject* resultVector;
+	vector_VectorObject* vector = NULL;
+	float scalar = 0;
+	int rightISAFloat = PyFloat_Check(right);
+	int leftISAFloat = PyFloat_Check(left);
+	if (leftISAFloat == 1 && rightISAFloat == 0)
+	{
+		returnValue = doScalarMulVector(left, right);
+	}
+	else if (leftISAFloat == 0 && rightISAFloat == 1)
+	{
+		returnValue = doScalarMulVector(right, left);
+	}
+	return returnValue;
+}
+
+
+
 
 static PyObject* repr(PyObject* self) {
 	std::string lofasz;
@@ -197,6 +246,7 @@ PyInit_VectorModule(void)
 	PyObject* m;
 	vectorNumberMethods.nb_add = (binaryfunc)VectorSum; //operator+ overload
 	vectorNumberMethods.nb_subtract = (binaryfunc)VectorSubstract; //operator- overload
+	vectorNumberMethods.nb_multiply = (binaryfunc)VectorMul;
 	vector_VectorType.tp_new = Vector_new;
 	vector_VectorType.tp_as_number = &vectorNumberMethods;
 	vector_VectorType.tp_basicsize = sizeof(vector_VectorObject);
