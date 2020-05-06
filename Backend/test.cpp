@@ -183,9 +183,6 @@ static PyObject* doVectorMulVector(PyObject* left, PyObject* right) {
 	return resultVector;
 }
 
-//TODO: change left arg to vector and right to scalar
-
-
 
 static PyObject* VectorMul(PyObject* left, PyObject* right) {
 	PyObject* returnValue = NULL;
@@ -400,6 +397,67 @@ static PyObject* doScalarMulMatrix(PyObject* left, PyObject* right, int flipScal
 	return resultMatrix;
 
 }
+
+static float** toArray(float* data, int row, int column) {
+	float** result = new float*[row];
+	int columnNumber = 0;
+	for (int i = 0; i < row; i++)
+	{
+		float* resultRow = new float[column];
+		for (int j = 0; j < column; j++)
+		{
+			resultRow[j] = data[columnNumber];
+			columnNumber++;
+		}
+		result[i] = resultRow;
+	}
+	return result;
+}
+
+
+//TODO: check args
+static PyObject* MatrixMulMatrix(PyObject* left, PyObject* right) {
+
+	MatrixObject* leftObject1 = NULL;
+	MatrixObject* rightObject2 = NULL;
+	leftObject1 = (MatrixObject*)left;
+	rightObject2 = (MatrixObject*)right;
+	PyArrayObject* arrayObject1 = (PyArrayObject*)PyArray_ContiguousFromAny(leftObject1->data, PyArray_FLOAT32, 0, 2);
+	PyArrayObject* arrayObject2 = (PyArrayObject*)PyArray_ContiguousFromAny(rightObject2->data, PyArray_FLOAT32, 0, 2);
+	float* data1 = (float*)PyArray_DATA(arrayObject1);
+	float* data2 = (float*)PyArray_DATA(arrayObject2);
+
+	npy_intp* dims1 = new npy_intp[2];
+	dims1[0] = leftObject1->row;
+	dims1[1] = leftObject1->column;
+	int size1 = dims1[0] * dims1[1];
+
+	npy_intp* dims2 = new npy_intp[2];
+	dims2[0] = rightObject2->row;
+	dims2[1] = rightObject2->column;
+	int size2 = dims2[0] * dims2[1];
+
+	float** array1 = toArray(data1, dims1[0], dims1[1]);
+	float** array2 = toArray(data2, dims2[0], dims2[1]);
+
+	int resultSize = dims1[0] * dims2[1];
+	float** result = new float*[dims1[0]];
+
+	
+	for (int i = 0; i < dims1[0]; i++)
+	{
+		for (int j = 0; j < dims2[1]; j++)
+		{
+
+			for (int k = 0; k < dims1[1]; k++)
+			{
+
+			}
+		}
+	}
+
+}
+
 
 
 
