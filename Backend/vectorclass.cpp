@@ -8,12 +8,16 @@
 #include "vectorclass.h"
 
 
+
+
+
 //initconstructor
-PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds) {
+PyObject* Vector::vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds) {
 
 	PyObject* pyObject = NULL;
 	PyArg_ParseTuple(args, "O", &pyObject);
 
+	std::cout << "lofasz cout" << std::endl;
 	if (pyObject == NULL)
 	{
 		std::cout << "Argument parse failed" << std::endl; //TODO: change to python exception handling
@@ -26,25 +30,25 @@ PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds)
 }
 
 //Instantiate
-PyObject* Vector_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
+PyObject* Vector::Vector_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	vector_VectorObject* self;
 	self = (vector_VectorObject*)type->tp_alloc(type, sizeof(int));
 	return (PyObject*)self;
 }
 
 
-void Vector_dealloc(vector_VectorObject* self) {
+void Vector::Vector_dealloc(vector_VectorObject* self) {
 	self->data->ob_type->tp_free(self->data);
 	self->ob_base.ob_type->tp_free((PyObject*)self);
 }
 
-PyObject* toNumpy(PyObject* self) {
+PyObject* Vector::toNumpy(PyObject* self) {
 	PyObject* data = ((vector_VectorObject*)self)->data;
 	return PyArray_Return((PyArrayObject*)PyArray_ContiguousFromAny(data, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL));
 }
 
 
-PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* vector2) {
+PyObject* Vector::VectorSum(vector_VectorObject* vector1, vector_VectorObject* vector2) {
 
 	if (vector1->size != vector2->size)
 	{
@@ -76,7 +80,7 @@ PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* vector2) 
 	return result;
 }
 
-PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObject* vector2) {
+PyObject* Vector::VectorSubstract(vector_VectorObject* vector1, vector_VectorObject* vector2) {
 
 	if (vector1->size != vector2->size)
 	{
@@ -173,7 +177,7 @@ PyObject* doVectorMulVector(PyObject* left, PyObject* right) {
 }
 
 
-PyObject* VectorMul(PyObject* left, PyObject* right) {
+PyObject* Vector::VectorMul(PyObject* left, PyObject* right) {
 	PyObject* returnValue = NULL;
 	vector_VectorObject* vector = NULL;
 	float scalar = 0;
@@ -193,7 +197,7 @@ PyObject* VectorMul(PyObject* left, PyObject* right) {
 	return returnValue;
 }
 
-PyObject* VectorDivision(PyObject* left, PyObject* right) {
+PyObject* Vector::VectorDivision(PyObject* left, PyObject* right) {
 	PyObject* returnValue = NULL;
 	PyObject* resultVector;
 	vector_VectorObject* vector = NULL;
