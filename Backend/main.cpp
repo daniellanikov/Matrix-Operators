@@ -3,6 +3,7 @@
 #include "structmember.h"
 #include "PyMatrix.h"
 #include "PyVector.h"
+#include "Matrix.h"
 
 
 

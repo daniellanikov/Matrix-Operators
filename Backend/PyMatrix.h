@@ -1,12 +1,7 @@
 #ifndef PyMatrix_h
 #define PyMatrix_h
+#include "Matrix.h"
 
-typedef struct {
-	PyObject_HEAD
-		PyObject* data;
-	int row;
-	int column;
-} MatrixObject;
 
 
 class PyMatrix {

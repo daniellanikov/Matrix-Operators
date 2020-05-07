@@ -1,5 +1,5 @@
-#ifndef vectorclass_h
-#define vectorclass_h
+#ifndef PyVector_h
+#define PyVector_h
 
 typedef struct {
 	PyObject_HEAD
@@ -18,8 +18,6 @@ public:
 	static void vectorDealloc(VectorObject* self);
 	static PyObject* toNumpy(PyObject* self);
 	static PyTypeObject vectorType;
-
-
 };
 
-#endif // !vectorclass_h
+#endif // !PyVector_h

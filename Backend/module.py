@@ -2,7 +2,7 @@
 from distutils.core import setup, Extension
 
 VectorModule = Extension('VectorModule',
-                    sources = ['main.cpp', 'PyVector.cpp', 'PyMatrix.cpp'])
+                    sources = ['main.cpp', 'PyVector.cpp', 'PyMatrix.cpp', 'Matrix.cpp'])
 
 setup (name = 'VectorModule',
        version = '1.0',

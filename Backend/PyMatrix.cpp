@@ -82,9 +82,8 @@ PyObject* doMatrixSum(MatrixObject* matrix1, MatrixObject* matrix2, int substrac
 
 PyObject* PyMatrix::matrixSum(MatrixObject* matrix1, MatrixObject* matrix2) {
 	
-	MatrixObject sum = &matrix1 + &matrix2;
-	PyObject* result = doMatrixSum(matrix1, matrix2, 0);
-	return result;
+	MatrixObject sum = *matrix1 + *matrix2;
+	return sum.data;
 }
 
 PyObject* PyMatrix::matrixSubstraction(MatrixObject* matrix1, MatrixObject* matrix2) {
