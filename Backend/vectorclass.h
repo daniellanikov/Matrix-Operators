@@ -1,22 +1,11 @@
 #ifndef vectorclass_h
 #define vectorclass_h
 
-
-
 typedef struct {
 	PyObject_HEAD
 		PyObject* data;
 	int size;
 } vector_VectorObject;
-
-
-
-PyTypeObject vector_VectorType = {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"vector.Vector",             /* tp_name */
-	sizeof(vector_VectorObject)
-};
-
 
 class Vector {
 public:
@@ -28,15 +17,9 @@ public:
 	static PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds);
 	static void Vector_dealloc(vector_VectorObject* self);
 	static PyObject* toNumpy(PyObject* self);
-
+	static PyTypeObject vector_VectorType;
 
 
 };
-
-
-
-
-
-
 
 #endif // !vectorclass_h

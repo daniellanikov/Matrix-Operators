@@ -7,17 +7,19 @@
 #include <floatobject.h>
 #include "vectorclass.h"
 
-
+PyTypeObject Vector::vector_VectorType = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"vector.Vector",             /* tp_name */
+	sizeof(vector_VectorObject)
+};
 
 
 
 //initconstructor
 PyObject* Vector::vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds) {
-
 	PyObject* pyObject = NULL;
 	PyArg_ParseTuple(args, "O", &pyObject);
 
-	std::cout << "lofasz cout" << std::endl;
 	if (pyObject == NULL)
 	{
 		std::cout << "Argument parse failed" << std::endl; //TODO: change to python exception handling
@@ -43,19 +45,20 @@ void Vector::Vector_dealloc(vector_VectorObject* self) {
 }
 
 PyObject* Vector::toNumpy(PyObject* self) {
+	import_array();
 	PyObject* data = ((vector_VectorObject*)self)->data;
 	return PyArray_Return((PyArrayObject*)PyArray_ContiguousFromAny(data, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL));
 }
 
 
 PyObject* Vector::VectorSum(vector_VectorObject* vector1, vector_VectorObject* vector2) {
-
+	import_array();
 	if (vector1->size != vector2->size)
 	{
 		std::cout << "Vector legth mismatch" << std::endl;
 		throw std::invalid_argument("received negative value");
 	}
-
+	
 	PyArrayObject* arrayObject1;
 	PyArrayObject* arrayObject2;
 	arrayObject1 = (PyArrayObject*)vector1->data;
@@ -63,7 +66,7 @@ PyObject* Vector::VectorSum(vector_VectorObject* vector1, vector_VectorObject* v
 	float* sum = (float*)malloc(sizeof(float) * vector1->size);
 	float* vectorData1 = (float*)PyArray_DATA(arrayObject1);
 	float* vectorData2 = (float*)PyArray_DATA(arrayObject2);
-
+	
 	for (int i = 0; i < vector1->size; i++)
 	{
 		sum[i] = vectorData1[i] + vectorData2[i];
@@ -74,6 +77,7 @@ PyObject* Vector::VectorSum(vector_VectorObject* vector1, vector_VectorObject* v
 	int ndim = PyArray_NDIM(vector1->data);
 	PyArrayObject* array = NULL;
 	array = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)sum);
+	
 	PyObject* arg = Py_BuildValue("(O)", array);
 	result = PyObject_CallObject((PyObject*)& vector_VectorType, arg);
 	Py_INCREF(result);
@@ -137,7 +141,7 @@ PyObject* doScalarMulVector(PyObject* left, PyObject* right, int flipScalar) {
 	resultArrayObject = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)result);
 	PyObject* args = NULL;
 	args = Py_BuildValue("(O)", resultArrayObject);
-	resultVector = PyObject_CallObject((PyObject*)& vector_VectorType, args);
+	resultVector = PyObject_CallObject((PyObject*)& Vector::vector_VectorType, args);
 	Py_INCREF(resultVector);
 	Py_DECREF(rightArrayObject);
 	return resultVector;
@@ -169,7 +173,7 @@ PyObject* doVectorMulVector(PyObject* left, PyObject* right) {
 	resultArrayObject = (PyArrayObject*)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*)result);
 	PyObject* args = NULL;
 	args = Py_BuildValue("(O)", resultArrayObject);
-	resultVector = PyObject_CallObject((PyObject*)& vector_VectorType, args);
+	resultVector = PyObject_CallObject((PyObject*)& Vector::vector_VectorType, args);
 	Py_INCREF(resultVector);
 	Py_DECREF(rightArrayObject);
 	Py_DECREF(leftArrayObject);

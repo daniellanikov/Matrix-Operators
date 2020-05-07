@@ -7,8 +7,14 @@
 #include <floatobject.h>
 #include "Matrix.h"
 
+PyTypeObject Matrix::MatrixType = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"vector.Matrix",             /* tp_name */
+	sizeof(MatrixObject)
+};
 
-PyObject* matrix_init(MatrixObject* self, PyObject* args, PyObject* kwds) {
+
+PyObject* Matrix::matrix_init(MatrixObject* self, PyObject* args, PyObject* kwds) {
 
 	PyObject* pyObject = NULL;
 	PyArg_ParseTuple(args, "O", &pyObject);
@@ -28,19 +34,21 @@ PyObject* matrix_init(MatrixObject* self, PyObject* args, PyObject* kwds) {
 
 
 //Instantiate
-PyObject* Matrix_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
+PyObject* Matrix::Matrix_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	MatrixObject* self;
 	self = (MatrixObject*)type->tp_alloc(type, sizeof(int) * 2);
 	return (PyObject*)self;
 }
 
-void Matrix_dealloc(MatrixObject* self) {
+void Matrix::Matrix_dealloc(MatrixObject* self) {
 	self->data->ob_type->tp_free(self->data);
 	self->ob_base.ob_type->tp_free((PyObject*)self);
 }
 
 
 PyObject* doMatrixSum(MatrixObject* matrix1, MatrixObject* matrix2, int substraction) {
+
+	import_array();
 
 	PyArrayObject* arrayObject1;
 	PyArrayObject* arrayObject2;
@@ -66,23 +74,25 @@ PyObject* doMatrixSum(MatrixObject* matrix1, MatrixObject* matrix2, int substrac
 	PyArrayObject* array = NULL;
 	array = (PyArrayObject*)PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, (void*)sum);
 	PyObject* arg = Py_BuildValue("(O)", array);
-	result = PyObject_CallObject((PyObject*)& MatrixType, arg);
+	result = PyObject_CallObject((PyObject*)& Matrix::MatrixType, arg);
 	Py_INCREF(result);
 	return result;
 }
 
-PyObject* MatrixSum(MatrixObject* matrix1, MatrixObject* matrix2) {
+PyObject* Matrix::MatrixSum(MatrixObject* matrix1, MatrixObject* matrix2) {
 	PyObject* result = doMatrixSum(matrix1, matrix2, 0);
 	return result;
 }
 
-PyObject* MatrixSubstraction(MatrixObject* matrix1, MatrixObject* matrix2) {
+PyObject* Matrix::MatrixSubstraction(MatrixObject* matrix1, MatrixObject* matrix2) {
 	PyObject* result = doMatrixSum(matrix1, matrix2, 1);
 	return result;
 }
 
 
 PyObject* doScalarMulMatrix(PyObject* left, PyObject* right, int flipScalar) {
+	import_array();
+
 	//init
 	PyObject* resultMatrix;
 	MatrixObject* matrix = NULL;
@@ -109,7 +119,7 @@ PyObject* doScalarMulMatrix(PyObject* left, PyObject* right, int flipScalar) {
 	resultArrayObject = (PyArrayObject*)PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, (void*)result);
 	PyObject* args = NULL;
 	args = Py_BuildValue("(O)", resultArrayObject);
-	resultMatrix = PyObject_CallObject((PyObject*)& MatrixType, args);
+	resultMatrix = PyObject_CallObject((PyObject*)& Matrix::MatrixType, args);
 	Py_INCREF(resultMatrix);
 	Py_DECREF(rightArrayObject);
 	return resultMatrix;
@@ -135,6 +145,8 @@ float** toArray(float* data, int row, int column) {
 
 //TODO: check args
 PyObject* MatrixMulMatrix(PyObject* left, PyObject* right) {
+
+	import_array();
 
 	MatrixObject* leftObject1 = NULL;
 	MatrixObject* rightObject2 = NULL;
@@ -179,7 +191,7 @@ PyObject* MatrixMulMatrix(PyObject* left, PyObject* right) {
 
 
 
-PyObject* MatrixMul(PyObject* left, PyObject* right) {
+PyObject* Matrix::MatrixMul(PyObject* left, PyObject* right) {
 
 	PyObject* returnValue = NULL;
 	PyObject* resultMatrix;
@@ -200,7 +212,7 @@ PyObject* MatrixMul(PyObject* left, PyObject* right) {
 }
 
 
-PyObject* MatrixDiv(PyObject* left, PyObject* right) {
+PyObject* Matrix::MatrixDiv(PyObject* left, PyObject* right) {
 	PyObject* returnValue = NULL;
 	PyObject* resultMatrix;
 	MatrixObject* matrix = NULL;
@@ -220,7 +232,8 @@ PyObject* MatrixDiv(PyObject* left, PyObject* right) {
 }
 
 
-PyObject* toNumpyMatrix(PyObject* self) {
+PyObject* Matrix::toNumpyMatrix(PyObject* self) {
+	import_array();
 	PyObject* data = ((MatrixObject*)self)->data;
 	return PyArray_Return((PyArrayObject*)PyArray_ContiguousFromAny(data, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL));
 }
