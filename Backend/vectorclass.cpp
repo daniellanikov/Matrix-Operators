@@ -9,7 +9,7 @@
 
 
 //initconstructor
-static PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds) {
+PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject* kwds) {
 
 	PyObject* pyObject = NULL;
 	PyArg_ParseTuple(args, "O", &pyObject);
@@ -26,25 +26,25 @@ static PyObject* vector_init(vector_VectorObject* self, PyObject* args, PyObject
 }
 
 //Instantiate
-static PyObject* Vector_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
+PyObject* Vector_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	vector_VectorObject* self;
 	self = (vector_VectorObject*)type->tp_alloc(type, sizeof(int));
 	return (PyObject*)self;
 }
 
 
-static void Vector_dealloc(vector_VectorObject* self) {
+void Vector_dealloc(vector_VectorObject* self) {
 	self->data->ob_type->tp_free(self->data);
 	self->ob_base.ob_type->tp_free((PyObject*)self);
 }
 
-static PyObject* toNumpy(PyObject* self) {
+PyObject* toNumpy(PyObject* self) {
 	PyObject* data = ((vector_VectorObject*)self)->data;
 	return PyArray_Return((PyArrayObject*)PyArray_ContiguousFromAny(data, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL));
 }
 
 
-static PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* vector2) {
+PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* vector2) {
 
 	if (vector1->size != vector2->size)
 	{
@@ -76,7 +76,7 @@ static PyObject* VectorSum(vector_VectorObject* vector1, vector_VectorObject* ve
 	return result;
 }
 
-static PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObject* vector2) {
+PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObject* vector2) {
 
 	if (vector1->size != vector2->size)
 	{
@@ -108,7 +108,7 @@ static PyObject* VectorSubstract(vector_VectorObject* vector1, vector_VectorObje
 	return result;
 }
 
-static PyObject* doScalarMulVector(PyObject* left, PyObject* right, int flipScalar) {
+PyObject* doScalarMulVector(PyObject* left, PyObject* right, int flipScalar) {
 	//init
 	PyObject* resultVector;
 	vector_VectorObject* vector = NULL;
@@ -140,7 +140,7 @@ static PyObject* doScalarMulVector(PyObject* left, PyObject* right, int flipScal
 }
 
 
-static PyObject* doVectorMulVector(PyObject* left, PyObject* right) {
+PyObject* doVectorMulVector(PyObject* left, PyObject* right) {
 	//init
 	PyObject* resultVector;
 	vector_VectorObject* vector1 = NULL;
@@ -173,7 +173,7 @@ static PyObject* doVectorMulVector(PyObject* left, PyObject* right) {
 }
 
 
-static PyObject* VectorMul(PyObject* left, PyObject* right) {
+PyObject* VectorMul(PyObject* left, PyObject* right) {
 	PyObject* returnValue = NULL;
 	vector_VectorObject* vector = NULL;
 	float scalar = 0;
@@ -193,7 +193,7 @@ static PyObject* VectorMul(PyObject* left, PyObject* right) {
 	return returnValue;
 }
 
-static PyObject* VectorDivision(PyObject* left, PyObject* right) {
+PyObject* VectorDivision(PyObject* left, PyObject* right) {
 	PyObject* returnValue = NULL;
 	PyObject* resultVector;
 	vector_VectorObject* vector = NULL;
@@ -212,7 +212,7 @@ static PyObject* VectorDivision(PyObject* left, PyObject* right) {
 }
 
 
-static PyObject* repr(PyObject* self) {
+PyObject* repr(PyObject* self) {
 	std::string lofasz;
 	std::stringstream valami;
 

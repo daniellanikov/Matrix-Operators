@@ -1,8 +1,9 @@
 #include <Python.h>
 #include<arrayobject.h> // import array miatt
 #include "structmember.h"
-#include "vectorclass.h"
+
 #include "Matrix.h"
+#include "vectorclass.h"
 
 
 PyMODINIT_FUNC
@@ -11,6 +12,7 @@ PyInit_VectorModule(void)
 	import_array();
 	PyObject* m;
 	vectorNumberMethods.nb_add = (binaryfunc)VectorSum; //operator+ overload
+	
 	vectorNumberMethods.nb_subtract = (binaryfunc)VectorSubstract; //operator- overload
 	vectorNumberMethods.nb_multiply = (binaryfunc)VectorMul;
 	vectorNumberMethods.nb_true_divide= (binaryfunc)VectorDivision;
@@ -38,11 +40,9 @@ PyInit_VectorModule(void)
 		return NULL;
 	if (PyType_Ready(&MatrixType) < 0)
 		return NULL;
-
 	m = PyModule_Create(&vectorModule);
 	if (m == NULL)
 		return NULL;
-
 	Py_INCREF(&vector_VectorType);
 	if (PyModule_AddObject(m, "vector", (PyObject*)& vector_VectorType) != 0) {
 		return NULL;
