@@ -11,8 +11,7 @@ public:
 	int row;
 	int column;
 	MatrixObject(int, int, PyObject*);
-	MatrixObject operator+ (MatrixObject);
-	
+	float* operator+ (MatrixObject);
 };
 
 #endif // !Matrix_h

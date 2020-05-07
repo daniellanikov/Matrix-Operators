@@ -18,13 +18,13 @@ vector4 = VectorModule.vector(arrVector4)
 
 sumVector = vector1 + vector2
 print(sumVector.toNumpy())
+sum = matrix + matrix2
 
-sum = matrix - matrix2
 product = 2.0 * vector1 * 3.0
 vectorProduct = vector1 * vector2
 vectorDivision = vector4 / 2
 sumVector = vector1 + vector2
-sum = matrix - matrix2
+
 difference = vector1 - vector2
 matrixProduct = 2.0 * matrix * 2.0
 matrixDivision = matrix2 / 2.0
