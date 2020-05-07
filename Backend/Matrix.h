@@ -12,6 +12,8 @@ public:
 	int column;
 	MatrixObject(int, int, PyObject*);
 	float* operator+ (MatrixObject);
+	float* operator-(MatrixObject);
+	float* doMatrixSum(MatrixObject, MatrixObject, int);
 };
 
 #endif // !Matrix_h

@@ -12,24 +12,39 @@ MatrixObject::MatrixObject(int row, int column, PyObject* data) {
 
 
 float* MatrixObject::operator+(MatrixObject matrix) {
-	std::cout << "matrix1: " << this->row << std::endl;
-	int thisSize = this->row * this->column;
-	int matrixSize = matrix.row * matrix.column;
+	return doMatrixSum(*this, matrix, 1);
+};
+
+
+float* MatrixObject::operator-(MatrixObject matrix) {
+	return doMatrixSum(*this, matrix, 0);
+};
+
+
+
+float* MatrixObject::doMatrixSum(MatrixObject matrix1, MatrixObject matrix2, int subtraction) {
+	int thisSize = matrix1.row * matrix1.column;
+	int matrixSize = matrix2.row * matrix2.column;
 	float* thisData = new float[thisSize];
 	float* matrixData = new float[matrixSize];
 	float* resultData = new float[thisSize];
-	std::cout << "lofasz1 " << std::endl;
-	PyArrayObject* thisArrayObject = (PyArrayObject*)this->data;
+	PyArrayObject* thisArrayObject = (PyArrayObject*)matrix1.data;
 
 	thisData = (float*)PyArray_DATA(thisArrayObject);
-	std::cout << "lofasz2 " << std::endl;
-	PyArrayObject* matrixArrayObject = (PyArrayObject*)matrix.data;
+	PyArrayObject* matrixArrayObject = (PyArrayObject*)matrix2.data;
 	matrixData = (float*)PyArray_DATA(matrixArrayObject);
 
 	for (int i = 0; i < thisSize; i++)
 	{
-		resultData[i] = thisData[i] + matrixData[i];
+		if (subtraction == 1)
+		{
+			resultData[i] = thisData[i] + matrixData[i];
+		}
+		else
+		{
+			resultData[i] = thisData[i] - matrixData[i];
+		}
 	}
-	
+
 	return resultData;
-};
+}

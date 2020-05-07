@@ -80,21 +80,29 @@ PyObject* doMatrixSum(MatrixObject* matrix1, MatrixObject* matrix2, int substrac
 	return result;
 }
 
-PyObject* PyMatrix::matrixSum(MatrixObject* matrix1, MatrixObject* matrix2) {
-	import_array();
-	float* sum = *matrix1 + *matrix2;
-	int* dims = new int[2];
-	dims[0] = matrix1->row;
-	dims[1] = matrix2->column;
+PyObject* wrapMatrix(float* sum, int* dims) {
 	PyObject* sumArrayObject = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, sum);
 	PyObject* arg = Py_BuildValue("(O)", sumArrayObject);
 	PyObject* sumMatrixObject = PyObject_CallObject((PyObject*)& PyMatrix::matrixType, arg);
 	return sumMatrixObject;
 }
 
+PyObject* PyMatrix::matrixSum(MatrixObject* matrix1, MatrixObject* matrix2) {
+	import_array();
+	float* sum = *matrix1 + *matrix2;
+	int* dims = new int[2];
+	dims[0] = matrix1->row;
+	dims[1] = matrix2->column;
+	return wrapMatrix(sum, dims);
+}
+
 PyObject* PyMatrix::matrixSubstraction(MatrixObject* matrix1, MatrixObject* matrix2) {
-	PyObject* result = doMatrixSum(matrix1, matrix2, 1);
-	return result;
+	import_array();
+	float* sum = *matrix1 - *matrix2;
+	int* dims = new int[2];
+	dims[0] = matrix1->row;
+	dims[1] = matrix2->column;
+	return wrapMatrix(sum, dims);
 }
 
 

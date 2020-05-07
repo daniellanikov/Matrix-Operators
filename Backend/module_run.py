@@ -17,8 +17,9 @@ vector3 = VectorModule.vector(arrVector1)
 vector4 = VectorModule.vector(arrVector4)
 
 sumVector = vector1 + vector2
-print(sumVector.toNumpy())
+#print(sumVector.toNumpy())
 sum = matrix + matrix2
+matrixDif = matrix - matrix2
 
 product = 2.0 * vector1 * 3.0
 vectorProduct = vector1 * vector2
@@ -29,10 +30,11 @@ difference = vector1 - vector2
 matrixProduct = 2.0 * matrix * 2.0
 matrixDivision = matrix2 / 2.0
 
-print(matrixDivision.toNumpy())
-print(sumVector.toNumpy())
-print(vectorProduct.toNumpy())
-print(vectorDivision.toNumpy())
+print(matrixDif.toNumpy())
+#print(matrixDivision.toNumpy())
+#print(sumVector.toNumpy())
+#print(vectorProduct.toNumpy())
+#print(vectorDivision.toNumpy())
 print(sum.toNumpy())
-print(difference.toNumpy())
+#print(difference.toNumpy())
 
