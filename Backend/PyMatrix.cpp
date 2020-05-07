@@ -11,19 +11,18 @@
 PyTypeObject PyMatrix::matrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"vector.Matrix",             /* tp_name */
-	sizeof(MatrixObject)
+	sizeof(Matrix)
 };
 
 
-PyObject* PyMatrix::matrixInit(MatrixObject* self, PyObject* args, PyObject* kwds) {
+PyObject* PyMatrix::matrixInit(Matrix* self, PyObject* args, PyObject* kwds) {
 
 	PyObject* pyObject = NULL;
 	PyArg_ParseTuple(args, "O", &pyObject);
 
 	if (pyObject == NULL)
 	{
-		std::cout << "Argument parse failed" << std::endl; //TODO: change to python exception handling
-		throw std::invalid_argument("received negative value");
+		PyErr_Print();
 	}
 	int row = PyArray_SHAPE((PyArrayObject*)(pyObject))[0];
 	int column = PyArray_SHAPE((PyArrayObject*)(pyObject))[1];
@@ -36,48 +35,14 @@ PyObject* PyMatrix::matrixInit(MatrixObject* self, PyObject* args, PyObject* kwd
 
 //Instantiate
 PyObject* PyMatrix::matrixNew(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-	MatrixObject* self;
-	self = (MatrixObject*)type->tp_alloc(type, sizeof(int) * 2);
+	Matrix* self;
+	self = (Matrix*)type->tp_alloc(type, sizeof(int) * 2);
 	return (PyObject*)self;
 }
 
-void PyMatrix::matrixDealloc(MatrixObject* self) {
+void PyMatrix::matrixDealloc(Matrix* self) {
 	self->data->ob_type->tp_free(self->data);
 	self->ob_base.ob_type->tp_free((PyObject*)self);
-}
-
-
-PyObject* doMatrixSum(MatrixObject* matrix1, MatrixObject* matrix2, int substraction) {
-
-	import_array();
-
-	PyArrayObject* arrayObject1;
-	PyArrayObject* arrayObject2;
-	arrayObject1 = (PyArrayObject*)matrix1->data;
-	arrayObject2 = (PyArrayObject*)matrix2->data;
-	int size = matrix1->row * matrix1->column;
-	float* sum = (float*)malloc(sizeof(float) * size);
-	float* matrixData1 = (float*)PyArray_DATA(arrayObject1);
-	float* matrixData2 = (float*)PyArray_DATA(arrayObject2);
-
-	for (int i = 0; i < size; i++)
-	{
-		if (substraction == 1)
-		{
-			sum[i] = matrixData1[i] - matrixData2[i];
-		}
-		else { sum[i] = matrixData1[i] + matrixData2[i]; }
-	}
-	PyObject* result;
-	npy_intp* dims = (npy_intp*)malloc(sizeof(npy_intp*) * 2);
-	dims[0] = matrix1->row;
-	dims[1] = matrix2->column;
-	PyArrayObject* array = NULL;
-	array = (PyArrayObject*)PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, (void*)sum);
-	PyObject* arg = Py_BuildValue("(O)", array);
-	result = PyObject_CallObject((PyObject*)& PyMatrix::matrixType, arg);
-	Py_INCREF(result);
-	return result;
 }
 
 PyObject* wrapMatrix(float* sum, int* dims) {
@@ -87,7 +52,7 @@ PyObject* wrapMatrix(float* sum, int* dims) {
 	return sumMatrixObject;
 }
 
-PyObject* PyMatrix::matrixSum(MatrixObject* matrix1, MatrixObject* matrix2) {
+PyObject* PyMatrix::matrixSum(Matrix* matrix1, Matrix* matrix2) {
 	import_array();
 	float* sum = *matrix1 + *matrix2;
 	int* dims = new int[2];
@@ -96,7 +61,7 @@ PyObject* PyMatrix::matrixSum(MatrixObject* matrix1, MatrixObject* matrix2) {
 	return wrapMatrix(sum, dims);
 }
 
-PyObject* PyMatrix::matrixSubstraction(MatrixObject* matrix1, MatrixObject* matrix2) {
+PyObject* PyMatrix::matrixSubstraction(Matrix* matrix1, Matrix* matrix2) {
 	import_array();
 	float* sum = *matrix1 - *matrix2;
 	int* dims = new int[2];
@@ -111,10 +76,10 @@ PyObject* doScalarMulMatrix(PyObject* left, PyObject* right, int flipScalar) {
 
 	//init
 	PyObject* resultMatrix;
-	MatrixObject* matrix = NULL;
+	Matrix* matrix = NULL;
 	float scalar = 0;
 
-	matrix = (MatrixObject*)right;
+	matrix = (Matrix*)right;
 	PyArg_Parse(left, "f", &scalar);
 	if (flipScalar == 1) {
 
@@ -164,10 +129,10 @@ PyObject* MatrixMulMatrix(PyObject* left, PyObject* right) {
 
 	import_array();
 
-	MatrixObject* leftObject1 = NULL;
-	MatrixObject* rightObject2 = NULL;
-	leftObject1 = (MatrixObject*)left;
-	rightObject2 = (MatrixObject*)right;
+	Matrix* leftObject1 = NULL;
+	Matrix* rightObject2 = NULL;
+	leftObject1 = (Matrix*)left;
+	rightObject2 = (Matrix*)right;
 	PyArrayObject* arrayObject1 = (PyArrayObject*)PyArray_ContiguousFromAny(leftObject1->data, PyArray_FLOAT32, 0, 2);
 	PyArrayObject* arrayObject2 = (PyArrayObject*)PyArray_ContiguousFromAny(rightObject2->data, PyArray_FLOAT32, 0, 2);
 	float* data1 = (float*)PyArray_DATA(arrayObject1);
@@ -205,52 +170,52 @@ PyObject* MatrixMulMatrix(PyObject* left, PyObject* right) {
 }
 
 
-
-
-PyObject* PyMatrix::matrixMul(PyObject* left, PyObject* right) {
-
-	PyObject* returnValue = NULL;
-	PyObject* resultMatrix;
-	MatrixObject* matrix = NULL;
-	float scalar = 0;
+Matrix* checkArgs(PyObject* left, PyObject* right, float scalar) {
+	Matrix* matrix;
 	int rightISAFloat = PyFloat_Check(right);
 	int leftISAFloat = PyFloat_Check(left);
 	if (leftISAFloat == 1 && rightISAFloat == 0)
 	{
-		returnValue = doScalarMulMatrix(left, right, 0);
-
+		matrix = (Matrix*)right;
+		PyArg_Parse(left, "f", &scalar);
 	}
 	else if (leftISAFloat == 0 && rightISAFloat == 1)
 	{
-		returnValue = doScalarMulMatrix(right, left, 0);
+		matrix = (Matrix*)left;
+		PyArg_Parse(right, "f", &scalar);
 	}
-	return returnValue;
+	return matrix;
+}
+
+PyObject* PyMatrix::matrixMul(PyObject* left, PyObject* right) {
+	float* resultData;
+	PyObject* resultMatrix;
+	float scalar = 0;
+	Matrix* matrix = checkArgs(left, right, scalar);
+	resultData = *matrix * scalar;
+	int* dims = new int[2];
+	dims[0] = matrix->row;
+	dims[1] = matrix->column;
+	return wrapMatrix(resultData, dims);
 }
 
 
 PyObject* PyMatrix::matrixDiv(PyObject* left, PyObject* right) {
-	PyObject* returnValue = NULL;
-	PyObject* resultMatrix;
-	MatrixObject* matrix = NULL;
+	float* resultData;
 	float scalar = 0;
-	int rightISAFloat = PyFloat_Check(right);
-	int leftISAFloat = PyFloat_Check(left);
-	if (leftISAFloat == 0 && rightISAFloat == 1)
-	{
-		returnValue = doScalarMulMatrix(right, left, 1);
-
-	}
-	else
-	{
-		std::cout << "Wrong order" << std::endl;
-	}
-	return returnValue;
+	PyObject* resultMatrix;
+	Matrix* matrix = checkArgs(left, right, scalar);
+	resultData = *matrix / scalar;
+	int* dims = new int[2];
+	dims[0] = matrix->row;
+	dims[1] = matrix->column;
+	return wrapMatrix(resultData, dims);
 }
 
 
 PyObject* PyMatrix::toNumpyMatrix(PyObject* self) {
 	import_array();
-	PyObject* data = ((MatrixObject*)self)->data;
+	PyObject* data = ((Matrix*)self)->data;
 	return PyArray_Return((PyArrayObject*)PyArray_ContiguousFromAny(data, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL));
 }
 

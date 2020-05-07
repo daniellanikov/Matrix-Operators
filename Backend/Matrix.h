@@ -2,7 +2,7 @@
 #define Matrix_h
 
 
-class MatrixObject {
+class Matrix {
 
 public:
 
@@ -10,10 +10,17 @@ public:
 	PyObject* data;
 	int row;
 	int column;
-	MatrixObject(int, int, PyObject*);
-	float* operator+ (MatrixObject);
-	float* operator-(MatrixObject);
-	float* doMatrixSum(MatrixObject, MatrixObject, int);
+	Matrix(int, int, PyObject*);
+	float* operator+ (Matrix);
+	float* operator-(Matrix);
+	float* operator*(float);
+	float* operator/(float);
+
+
+private:
+
+	float* doMatrixSumOrSubtract(Matrix, Matrix, int);
+	float* doMatrixMulOrDiv(Matrix, float, int);
 };
 
 #endif // !Matrix_h

@@ -48,19 +48,19 @@ static PyMethodDef matrix_methods[] = {
 
 static PyMemberDef matrix_members[] = {
 	{"row",  /* name */
-	 offsetof(MatrixObject, row),  /* offset */
+	 offsetof(Matrix, row),  /* offset */
 	 T_INT,  /* type */
 	 READONLY,  /* flags */
 	 NULL  /* docstring */},
 
 	 {"column",  /* name */
-	 offsetof(MatrixObject, column),  /* offset */
+	 offsetof(Matrix, column),  /* offset */
 	 T_INT,  /* type */
 	 READONLY,  /* flags */
 	 NULL  /* docstring */},
 
 	 {"data",  /* name */
-	 offsetof(MatrixObject, data),  /* offset */
+	 offsetof(Matrix, data),  /* offset */
 	 T_OBJECT_EX,  /* type */
 	 READONLY,  /* flags */
 	 NULL  /* docstring */},
@@ -93,7 +93,7 @@ PyInit_VectorModule(void)
 	PyVector::vectorType.tp_dealloc = (destructor)PyVector::vectorDealloc;
 	PyMatrix::matrixType.tp_new = PyMatrix::matrixNew;
 	PyMatrix::matrixType.tp_as_number = &matrixNumberMethods;
-	PyMatrix::matrixType.tp_basicsize = sizeof(MatrixObject);
+	PyMatrix::matrixType.tp_basicsize = sizeof(Matrix);
 	PyMatrix::matrixType.tp_members = matrix_members;
 	PyMatrix::matrixType.tp_methods = matrix_methods;
 	PyMatrix::matrixType.tp_init = (initproc)PyMatrix::matrixInit;

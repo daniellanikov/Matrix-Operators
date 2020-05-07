@@ -3,7 +3,7 @@
 #include<arrayobject.h>
 #include<iostream>
 
-MatrixObject::MatrixObject(int row, int column, PyObject* data) {
+Matrix::Matrix(int row, int column, PyObject* data) {
 
 	this->row = row;
 	this->column = column;
@@ -11,28 +11,29 @@ MatrixObject::MatrixObject(int row, int column, PyObject* data) {
 }
 
 
-float* MatrixObject::operator+(MatrixObject matrix) {
-	return doMatrixSum(*this, matrix, 1);
+float* Matrix::operator+(Matrix matrix) {
+	return doMatrixSumOrSubtract(*this, matrix, 1);
 };
 
 
-float* MatrixObject::operator-(MatrixObject matrix) {
-	return doMatrixSum(*this, matrix, 0);
+float* Matrix::operator-(Matrix matrix) {
+	return doMatrixSumOrSubtract(*this, matrix, 0);
 };
 
 
 
-float* MatrixObject::doMatrixSum(MatrixObject matrix1, MatrixObject matrix2, int subtraction) {
+float* Matrix::doMatrixSumOrSubtract(Matrix matrix1, Matrix matrix2, int subtraction) {
+	if (matrix1.row != matrix2.row || matrix1.column != matrix2.column)
+	{
+		PyErr_SetString((PyObject*)& matrix1, "Size mismatch");
+	}
 	int thisSize = matrix1.row * matrix1.column;
 	int matrixSize = matrix2.row * matrix2.column;
-	float* thisData = new float[thisSize];
-	float* matrixData = new float[matrixSize];
 	float* resultData = new float[thisSize];
 	PyArrayObject* thisArrayObject = (PyArrayObject*)matrix1.data;
-
-	thisData = (float*)PyArray_DATA(thisArrayObject);
+	float* thisData = (float*)PyArray_DATA(thisArrayObject);
 	PyArrayObject* matrixArrayObject = (PyArrayObject*)matrix2.data;
-	matrixData = (float*)PyArray_DATA(matrixArrayObject);
+	float* matrixData = (float*)PyArray_DATA(matrixArrayObject);
 
 	for (int i = 0; i < thisSize; i++)
 	{
@@ -44,6 +45,34 @@ float* MatrixObject::doMatrixSum(MatrixObject matrix1, MatrixObject matrix2, int
 		{
 			resultData[i] = thisData[i] - matrixData[i];
 		}
+	}
+
+	return resultData;
+}
+
+float* Matrix::operator*(float scalar) {
+	return doMatrixMulOrDiv(*this, scalar, 0);
+};
+
+float* Matrix::operator/(float scalar) {
+	return doMatrixMulOrDiv(*this, scalar, 1);
+};
+
+
+float* Matrix::doMatrixMulOrDiv(Matrix matrix, float scalar, int flipScalar) {
+	int matrixSize = matrix.row * matrix.column;
+	float* matrixData = new float[matrixSize];
+	PyArrayObject* matrixArrayObject = (PyArrayObject*)matrix.data;
+	matrixData = (float*)PyArray_DATA(matrixArrayObject);
+	float* resultData = new float[matrixSize];
+	if (flipScalar == 1 && scalar != 0.0f)
+	{
+		scalar = 1 / scalar;
+	}
+
+	for (int i = 0; i < matrixSize; i++)
+	{
+		resultData[i] = matrixData[i] * scalar;
 	}
 
 	return resultData;
