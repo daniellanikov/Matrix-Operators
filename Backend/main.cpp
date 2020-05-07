@@ -1,18 +1,14 @@
 #include <Python.h>
 #include<arrayobject.h> // import array miatt
 #include "structmember.h"
-
-#include "Matrix.h"
-
-
-
-#include "vectorclass.h"
+#include "PyMatrix.h"
+#include "PyVector.h"
 
 
 
 
 PyMethodDef vector_methods[] = {
-	{ "toNumpy", (PyCFunction)Vector::toNumpy, METH_VARARGS},
+	{ "toNumpy", (PyCFunction)PyVector::toNumpy, METH_VARARGS},
 	{NULL}
 };
 struct PyModuleDef vectorModule = {
@@ -27,13 +23,13 @@ struct PyModuleDef vectorModule = {
 
 PyMemberDef vector_members[] = {
 	{"size",  /* name */
-	 offsetof(vector_VectorObject, size),  /* offset */
+	 offsetof(VectorObject, size),  /* offset */
 	 T_INT,  /* type */
 	 READONLY,  /* flags */
 	 NULL  /* docstring */},
 
 	 {"data",  /* name */
-	 offsetof(vector_VectorObject, data),  /* offset */
+	 offsetof(VectorObject, data),  /* offset */
 	 T_OBJECT_EX,  /* type */
 	 READONLY,  /* flags */
 	 NULL  /* docstring */},
@@ -44,7 +40,7 @@ PyMemberDef vector_members[] = {
 PyNumberMethods vectorNumberMethods = { NULL };
 
 static PyMethodDef matrix_methods[] = {
-	{ "toNumpy", (PyCFunction)Matrix::toNumpyMatrix, METH_VARARGS},
+	{ "toNumpy", (PyCFunction)PyMatrix::toNumpyMatrix, METH_VARARGS},
 	{NULL}
 };
 
@@ -78,44 +74,44 @@ PyInit_VectorModule(void)
 {
 	import_array();
 	PyObject* m;
-	vectorNumberMethods.nb_add = (binaryfunc)Vector::VectorSum; //operator+ overload
-	
-	vectorNumberMethods.nb_subtract = (binaryfunc)Vector::VectorSubstract; //operator- overload
-	vectorNumberMethods.nb_multiply = (binaryfunc)Vector::VectorMul;
-	vectorNumberMethods.nb_true_divide= (binaryfunc)Vector::VectorDivision;
-	matrixNumberMethods.nb_add = (binaryfunc)Matrix::MatrixSum;
-	matrixNumberMethods.nb_subtract = (binaryfunc)Matrix::MatrixSubstraction;
-	matrixNumberMethods.nb_multiply = (binaryfunc)Matrix::MatrixMul;
-	matrixNumberMethods.nb_true_divide = (binaryfunc)Matrix::MatrixDiv;
-	Vector::vector_VectorType.tp_new = Vector::Vector_new;
-	Vector::vector_VectorType.tp_as_number = &vectorNumberMethods;
-	Vector::vector_VectorType.tp_basicsize = sizeof(vector_VectorObject);
-	Vector::vector_VectorType.tp_members = vector_members;
-	Vector::vector_VectorType.tp_methods = vector_methods;
-	Vector::vector_VectorType.tp_init = (initproc)Vector::vector_init;
-	Vector::vector_VectorType.tp_dealloc = (destructor)Vector::Vector_dealloc;
-	Matrix::MatrixType.tp_new = Matrix::Matrix_new;
-	Matrix::MatrixType.tp_as_number = &matrixNumberMethods;
-	Matrix::MatrixType.tp_basicsize = sizeof(MatrixObject);
-	Matrix::MatrixType.tp_members = matrix_members;
-	Matrix::MatrixType.tp_methods = matrix_methods;
-	Matrix::MatrixType.tp_init = (initproc)Matrix::matrix_init;
-	Matrix::MatrixType.tp_dealloc = (destructor)Matrix::Matrix_dealloc;
-	
+	vectorNumberMethods.nb_add = (binaryfunc)PyVector::vectorSum; //operator+ overload
 
-	if (PyType_Ready(&Vector::vector_VectorType) < 0)
+	vectorNumberMethods.nb_subtract = (binaryfunc)PyVector::vectorSubstract; //operator- overload
+	vectorNumberMethods.nb_multiply = (binaryfunc)PyVector::vectorMul;
+	vectorNumberMethods.nb_true_divide = (binaryfunc)PyVector::vectorDivision;
+	matrixNumberMethods.nb_add = (binaryfunc)PyMatrix::matrixSum;
+	matrixNumberMethods.nb_subtract = (binaryfunc)PyMatrix::matrixSubstraction;
+	matrixNumberMethods.nb_multiply = (binaryfunc)PyMatrix::matrixMul;
+	matrixNumberMethods.nb_true_divide = (binaryfunc)PyMatrix::matrixDiv;
+	PyVector::vectorType.tp_new = PyVector::vectorNew;
+	PyVector::vectorType.tp_as_number = &vectorNumberMethods;
+	PyVector::vectorType.tp_basicsize = sizeof(VectorObject);
+	PyVector::vectorType.tp_members = vector_members;
+	PyVector::vectorType.tp_methods = vector_methods;
+	PyVector::vectorType.tp_init = (initproc)PyVector::vectorInit;
+	PyVector::vectorType.tp_dealloc = (destructor)PyVector::vectorDealloc;
+	PyMatrix::matrixType.tp_new = PyMatrix::matrixNew;
+	PyMatrix::matrixType.tp_as_number = &matrixNumberMethods;
+	PyMatrix::matrixType.tp_basicsize = sizeof(MatrixObject);
+	PyMatrix::matrixType.tp_members = matrix_members;
+	PyMatrix::matrixType.tp_methods = matrix_methods;
+	PyMatrix::matrixType.tp_init = (initproc)PyMatrix::matrixInit;
+	PyMatrix::matrixType.tp_dealloc = (destructor)PyMatrix::matrixDealloc;
+
+
+	if (PyType_Ready(&PyVector::vectorType) < 0)
 		return NULL;
-	if (PyType_Ready(&Matrix::MatrixType) < 0)
+	if (PyType_Ready(&PyMatrix::matrixType) < 0)
 		return NULL;
 	m = PyModule_Create(&vectorModule);
 	if (m == NULL)
 		return NULL;
-	Py_INCREF(&Vector::vector_VectorType);
-	if (PyModule_AddObject(m, "vector", (PyObject*)& Vector::vector_VectorType) != 0) {
+	Py_INCREF(&PyVector::vectorType);
+	if (PyModule_AddObject(m, "vector", (PyObject*)& PyVector::vectorType) != 0) {
 		return NULL;
 	};
-	Py_INCREF(&Matrix::MatrixType);
-	if (PyModule_AddObject(m, "matrix", (PyObject*)& Matrix::MatrixType) != 0) {
+	Py_INCREF(&PyMatrix::matrixType);
+	if (PyModule_AddObject(m, "matrix", (PyObject*)& PyMatrix::matrixType) != 0) {
 		return NULL;
 	};
 	return m;
