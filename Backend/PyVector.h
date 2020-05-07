@@ -1,21 +1,16 @@
 #ifndef PyVector_h
 #define PyVector_h
-
-typedef struct {
-	PyObject_HEAD
-		PyObject* data;
-	int size;
-} VectorObject;
+#include "Matrix.h"
 
 class PyVector {
 public:
-	static PyObject* vectorSum(VectorObject*, VectorObject*);
-	static PyObject* vectorSubstract(VectorObject* vector1, VectorObject* vector2);
+	static PyObject* vectorSum(Matrix*, Matrix*);
+	static PyObject* vectorSubstract(Matrix* vector1, Matrix* vector2);
 	static PyObject* vectorMul(PyObject* left, PyObject* right);
 	static PyObject* vectorDivision(PyObject* left, PyObject* right);
 	static PyObject* vectorNew(PyTypeObject* type, PyObject* args, PyObject* kwds);
-	static PyObject* vectorInit(VectorObject* self, PyObject* args, PyObject* kwds);
-	static void vectorDealloc(VectorObject* self);
+	static PyObject* vectorInit(Matrix* self, PyObject* args, PyObject* kwds);
+	static void vectorDealloc(Matrix* self);
 	static PyObject* toNumpy(PyObject* self);
 	static PyTypeObject vectorType;
 };

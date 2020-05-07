@@ -19,8 +19,8 @@ public:
 
 private:
 
-	float* doMatrixSumOrSubtract(Matrix, Matrix, int);
-	float* doMatrixMulOrDiv(Matrix, float, int);
+	float* doMatrixSumOrSubtract(Matrix, Matrix, bool);
+	float* doMatrixMulOrDiv(Matrix, float, bool);
 };
 
 #endif // !Matrix_h

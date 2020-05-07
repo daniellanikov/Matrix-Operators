@@ -8,7 +8,7 @@
 
 
 
-PyMethodDef vector_methods[] = {
+PyMethodDef vectorMethods[] = {
 	{ "toNumpy", (PyCFunction)PyVector::toNumpy, METH_VARARGS},
 	{NULL}
 };
@@ -17,36 +17,18 @@ struct PyModuleDef vectorModule = {
 	"VectorModule",
 	"documentation is here",
 	-1,
-	vector_methods
+	vectorMethods
 };
-
-
-
-PyMemberDef vector_members[] = {
-	{"size",  /* name */
-	 offsetof(VectorObject, size),  /* offset */
-	 T_INT,  /* type */
-	 READONLY,  /* flags */
-	 NULL  /* docstring */},
-
-	 {"data",  /* name */
-	 offsetof(VectorObject, data),  /* offset */
-	 T_OBJECT_EX,  /* type */
-	 READONLY,  /* flags */
-	 NULL  /* docstring */},
-	 {NULL}
-};
-
 
 PyNumberMethods vectorNumberMethods = { NULL };
 
-static PyMethodDef matrix_methods[] = {
+static PyMethodDef matrixMethods[] = {
 	{ "toNumpy", (PyCFunction)PyMatrix::toNumpyMatrix, METH_VARARGS},
 	{NULL}
 };
 
 
-static PyMemberDef matrix_members[] = {
+static PyMemberDef matrixMembers[] = {
 	{"row",  /* name */
 	 offsetof(Matrix, row),  /* offset */
 	 T_INT,  /* type */
@@ -86,16 +68,16 @@ PyInit_VectorModule(void)
 	matrixNumberMethods.nb_true_divide = (binaryfunc)PyMatrix::matrixDiv;
 	PyVector::vectorType.tp_new = PyVector::vectorNew;
 	PyVector::vectorType.tp_as_number = &vectorNumberMethods;
-	PyVector::vectorType.tp_basicsize = sizeof(VectorObject);
-	PyVector::vectorType.tp_members = vector_members;
-	PyVector::vectorType.tp_methods = vector_methods;
+	PyVector::vectorType.tp_basicsize = sizeof(Matrix);
+	PyVector::vectorType.tp_members = matrixMembers;
+	PyVector::vectorType.tp_methods = vectorMethods;
 	PyVector::vectorType.tp_init = (initproc)PyVector::vectorInit;
 	PyVector::vectorType.tp_dealloc = (destructor)PyVector::vectorDealloc;
 	PyMatrix::matrixType.tp_new = PyMatrix::matrixNew;
 	PyMatrix::matrixType.tp_as_number = &matrixNumberMethods;
 	PyMatrix::matrixType.tp_basicsize = sizeof(Matrix);
-	PyMatrix::matrixType.tp_members = matrix_members;
-	PyMatrix::matrixType.tp_methods = matrix_methods;
+	PyMatrix::matrixType.tp_members = matrixMembers;
+	PyMatrix::matrixType.tp_methods = matrixMethods;
 	PyMatrix::matrixType.tp_init = (initproc)PyMatrix::matrixInit;
 	PyMatrix::matrixType.tp_dealloc = (destructor)PyMatrix::matrixDealloc;
 
