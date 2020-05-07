@@ -6,6 +6,7 @@
 #include <sstream>
 #include <floatobject.h>
 #include "PyMatrix.h"
+#include "Matrix.h"
 
 PyTypeObject PyMatrix::matrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -80,6 +81,8 @@ PyObject* doMatrixSum(MatrixObject* matrix1, MatrixObject* matrix2, int substrac
 }
 
 PyObject* PyMatrix::matrixSum(MatrixObject* matrix1, MatrixObject* matrix2) {
+	
+	MatrixObject sum = &matrix1 + &matrix2;
 	PyObject* result = doMatrixSum(matrix1, matrix2, 0);
 	return result;
 }
