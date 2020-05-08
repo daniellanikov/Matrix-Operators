@@ -1,7 +1,7 @@
 #include <Python.h>
-#include<arrayobject.h>
+#include <arrayobject.h>
 #include "structmember.h"
-#include<iostream>
+#include <iostream>
 #include <string>
 #include <sstream>
 #include <floatobject.h>
@@ -10,48 +10,46 @@
 #include "PyMatrix.h"
 
 PyTypeObject PyVector::vectorType = {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"vector.Vector",             /* tp_name */
-	sizeof(Matrix)
-};
+	PyVarObject_HEAD_INIT(NULL, 0) "vector.Vector", /* tp_name */
+	sizeof(Matrix) };
 
-//initconstructor
+// initconstructor
 PyObject* PyVector::vectorInit(Matrix* self, PyObject* args, PyObject* kwds) {
 	PyObject* pyObject = NULL;
 	PyArg_ParseTuple(args, "O", &pyObject);
-	if (pyObject == NULL)
-	{
+	if (pyObject == NULL) {
 		PyErr_SetString(PyExc_BaseException, "Parse failed");
 		return (PyObject*)NULL;
 	}
 	int* dims = PyArray_SHAPE((PyArrayObject*)(pyObject));
-	if (dims[0] != 1 && dims[1] !=1)
-	{
+	if (dims[0] != 1 && dims[1] != 1) {
 		PyErr_SetString(PyExc_BaseException, "Argument is not a vector");
 		return (PyObject*)NULL;
 	}
-	self->data = pyObject;
-	self->row = dims[0];
-	self->column = dims[1];
+	self->setData(pyObject);
+	self->setRow(dims[0]);
+	self->setColumn(dims[1]);
 	return Py_None;
 }
 
-//Instantiate
-PyObject* PyVector::vectorNew(PyTypeObject* type, PyObject* args, PyObject* kwds) {
+// Instantiate
+PyObject* PyVector::vectorNew(PyTypeObject* type, PyObject* args,
+	PyObject* kwds) {
 	Matrix* self;
-	self = (Matrix*)type->tp_alloc(type, sizeof(int)*2);
+	self = (Matrix*)type->tp_alloc(type, sizeof(int) * 2);
 	return (PyObject*)self;
 }
 
 void PyVector::vectorDealloc(Matrix* self) {
-	self->data->ob_type->tp_free(self->data);
+	self->getData()->ob_type->tp_free(self->getData());
 	self->ob_base.ob_type->tp_free((PyObject*)self);
 }
 
 PyObject* PyVector::toNumpy(PyObject* self) {
 	import_array();
-	PyObject* data = ((Matrix*)self)->data;
-	return PyArray_Return((PyArrayObject*)PyArray_ContiguousFromAny(data, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL));
+	PyObject* data = ((Matrix*)self)->getData();
+	return PyArray_Return((PyArrayObject*)PyArray_ContiguousFromAny(
+		data, PyArray_FLOAT32, 0, 2, NPY_ARRAY_DEFAULT, NULL));
 }
 
 PyObject* PyVector::vectorSum(Matrix* vector1, Matrix* vector2) {
@@ -69,4 +67,3 @@ PyObject* PyVector::vectorMul(PyObject* left, PyObject* right) {
 PyObject* PyVector::vectorDivision(PyObject* left, PyObject* right) {
 	return PyMatrix::matrixDiv(left, right);
 }
-
