@@ -86,34 +86,49 @@ PyObject* PyMatrix::matrixSubstraction(Matrix* matrix1, Matrix* matrix2) {
 
 Matrix* PyMatrix::checkArgs(PyObject* left, PyObject* right, float &scalar) {
 	Matrix* matrix;
+	Matrix* matrix2;
+	PyObject* returnMatrix;
 	int rightISAFloat = PyFloat_Check(right);
 	int leftISAFloat = PyFloat_Check(left);
 	if (leftISAFloat == 1 && rightISAFloat == 0)
 	{
 		matrix = (Matrix*)right;
 		PyArg_Parse(left, "f", &scalar);
+		return matrix;
 	}
 	else if (leftISAFloat == 0 && rightISAFloat == 1)
 	{
 		matrix = (Matrix*)left;
 		PyArg_Parse(right, "f", &scalar);
+		return matrix;
 	}
-	else
-	{
-		PyErr_SetString(PyExc_BaseException, "Argument is not a vector");
-		return NULL;
-	}
-	return matrix;
+	
 }
 
 PyObject* PyMatrix::matrixMul(PyObject* left, PyObject* right) {
 	float* resultData;
 	PyObject* resultMatrix;
 	float scalar = 0;
-	Matrix* matrix = checkArgs(left, right, scalar);
-	resultData = *matrix * scalar;
-	int dims[2] = { matrix->row, matrix->column };
-	return wrapMatrix(resultData, dims[0], dims[1]);
+	int rightISAFloat = PyFloat_Check(right);
+	int leftISAFloat = PyFloat_Check(left);
+	if (leftISAFloat || rightISAFloat)
+	{
+		Matrix* matrix = checkArgs(left, right, scalar);
+		resultData = *matrix * scalar;
+		int dims[2] = { matrix->row, matrix->column };
+		return wrapMatrix(resultData, dims[0], dims[1]);
+	}
+	else
+	{
+		Matrix* matrix;
+		matrix = (Matrix*)left;
+		Matrix* matrix2;
+		matrix2 = (Matrix*)right;
+		resultData = (*matrix) * (*matrix2);
+		int dims[2] = { matrix->row, matrix2->column };
+		return wrapMatrix(resultData, dims[0], dims[1]);
+	}
+	
 }
 
 
@@ -124,20 +139,6 @@ PyObject* PyMatrix::matrixDiv(PyObject* left, PyObject* right) {
 	Matrix* matrix = checkArgs(left, right, scalar);
 	resultData = *matrix / scalar;
 	int dims[2] = { matrix->row, matrix->column };
-	return wrapMatrix(resultData, dims[0], dims[1]);
-}
-
-
-PyObject* PyMatrix::matrixMulMatrix(PyObject* left, PyObject* right) {
-	std::cout << "lofasz1" << std::endl;
-	float* resultData;
-	PyObject* resultMatrix;
-	Matrix* matrix;
-	matrix = (Matrix*)left;
-	Matrix* matrix2;
-	matrix2 = (Matrix*)right;
-	resultData = (*matrix) * (*matrix2);
-	int dims[2] = { matrix->row, matrix2->column };
 	return wrapMatrix(resultData, dims[0], dims[1]);
 }
 

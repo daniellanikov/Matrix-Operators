@@ -12,7 +12,6 @@ public:
 	static PyObject* matrixSubstraction(Matrix* matrix1, Matrix* matrix2);
 	static PyObject* matrixMul(PyObject* left, PyObject* right);
 	static PyObject* matrixDiv(PyObject* left, PyObject* right);
-	static PyObject* matrixMulMatrix(PyObject* left, PyObject* right);
 	static PyObject* matrixNew(PyTypeObject* type, PyObject* args, PyObject* kwds);
 	static PyObject* matrixInit(Matrix* self, PyObject* args, PyObject* kwds);
 	static PyObject* wrapMatrix(float* sum, int row, int column);

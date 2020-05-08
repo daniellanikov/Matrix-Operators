@@ -21,9 +21,7 @@ vector3 = VectorModule.vector(arrVector1)
 vector4 = VectorModule.vector(arrVector4)
 
 sumVector = vector1 + vector2
-print("lofasz")
 matrixMul = matrix * matrix3
-print("lofasz")
 print(matrixMul.toNumpy())
 #print(sumVector.toNumpy())
 #sum = matrix + matrix2

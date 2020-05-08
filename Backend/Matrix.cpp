@@ -77,21 +77,17 @@ float* Matrix::doMatrixMulOrDiv(Matrix matrix, float scalar, bool isDiv) {
 }
 
 float* Matrix::operator*(Matrix matrix) {
-	std::cout << "lofasz1" << std::endl;
 	return doMatrixMulMatrix(*this, matrix);
 }
 
 float* Matrix::doMatrixMulMatrix(Matrix matrix1, Matrix matrix2) {
-	std::cout << "lofasz1" << std::endl;
 	int newSize = matrix1.row * matrix2.column;
 	float* resultData = new float[newSize];
-	std::cout << "lofasz2" << std::endl;
 	PyArrayObject* thisArrayObject = (PyArrayObject*)matrix1.data;
 	float* thisData = (float*)PyArray_DATA(thisArrayObject);
 	PyArrayObject* matrixArrayObject = (PyArrayObject*)matrix2.data;
 	float* matrixData = (float*)PyArray_DATA(matrixArrayObject);
 
-	std::cout << "lofasz3" << std::endl;
 	for (int i = 0; i < matrix1.row; i++) {
 		for (int j = 0; j < matrix2.column; j++) {
 			resultData[i * matrix2.column + j] = 0;
