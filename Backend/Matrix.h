@@ -13,14 +13,16 @@ public:
 	Matrix(int, int, PyObject*);
 	float* operator+ (Matrix);
 	float* operator-(Matrix);
+	float* operator*(Matrix);
 	float* operator*(float);
 	float* operator/(float);
-
+	
 
 private:
 
 	float* doMatrixSumOrSubtract(Matrix, Matrix, bool);
 	float* doMatrixMulOrDiv(Matrix, float, bool);
+	float* doMatrixMulMatrix(Matrix, Matrix);
 };
 
 #endif // !Matrix_h

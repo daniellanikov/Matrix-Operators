@@ -7,6 +7,7 @@
 #include <floatobject.h>
 #include "PyMatrix.h"
 #include "Matrix.h"
+#include <pyerrors.h>
 
 PyTypeObject PyMatrix::matrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -45,7 +46,8 @@ void PyMatrix::matrixDealloc(Matrix* self) {
 	self->ob_base.ob_type->tp_free((PyObject*)self);
 }
 
-PyObject* PyMatrix::wrapMatrix(float* sum, int* dims) {
+PyObject* PyMatrix::wrapMatrix(float* sum, int row, int column) {
+	int dims[2] = { row, column };
 	PyObject* sumArrayObject = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, sum);
 	PyObject* arg = Py_BuildValue("(O)", sumArrayObject);
 	PyObject* sumMatrixObject = PyObject_CallObject((PyObject*)& PyMatrix::matrixType, arg);
@@ -57,14 +59,13 @@ PyObject* PyMatrix::matrixSum(Matrix* matrix1, Matrix* matrix2) {
 	{
 		import_array();
 		float* sum = *matrix1 + *matrix2;
-		int* dims = new int[2];
-		dims[0] = matrix1->row;
-		dims[1] = matrix2->column;
-		return wrapMatrix(sum, dims);
+		int dims[2] = { matrix1->row, matrix2->column };
+		return wrapMatrix(sum, dims[0], dims[1]);
 	}
 	catch (const std::exception&)
 	{
 		PyErr_SetString((PyObject*)& matrix1, "Size mismatch");
+		return (PyObject*)NULL;
 	}
 }
 
@@ -73,14 +74,13 @@ PyObject* PyMatrix::matrixSubstraction(Matrix* matrix1, Matrix* matrix2) {
 	{
 		import_array();
 		float* sum = *matrix1 - *matrix2;
-		int* dims = new int[2];
-		dims[0] = matrix1->row;
-		dims[1] = matrix2->column;
-		return wrapMatrix(sum, dims);
+		int dims[2] = { matrix1->row, matrix2->column };
+		return wrapMatrix(sum, dims[0], dims[1]);
 	}
 	catch (const std::exception&)
 	{
-		PyErr_SetString((PyObject*)& matrix1, "Size mismatch");
+		PyErr_SetString(PyExc_BaseException, "Argument is not a vector");
+		return (PyObject*)NULL;
 	}
 }
 
@@ -98,6 +98,11 @@ Matrix* PyMatrix::checkArgs(PyObject* left, PyObject* right, float &scalar) {
 		matrix = (Matrix*)left;
 		PyArg_Parse(right, "f", &scalar);
 	}
+	else
+	{
+		PyErr_SetString(PyExc_BaseException, "Argument is not a vector");
+		return NULL;
+	}
 	return matrix;
 }
 
@@ -107,10 +112,8 @@ PyObject* PyMatrix::matrixMul(PyObject* left, PyObject* right) {
 	float scalar = 0;
 	Matrix* matrix = checkArgs(left, right, scalar);
 	resultData = *matrix * scalar;
-	int* dims = new int[2];
-	dims[0] = matrix->row;
-	dims[1] = matrix->column;
-	return wrapMatrix(resultData, dims);
+	int dims[2] = { matrix->row, matrix->column };
+	return wrapMatrix(resultData, dims[0], dims[1]);
 }
 
 
@@ -120,10 +123,22 @@ PyObject* PyMatrix::matrixDiv(PyObject* left, PyObject* right) {
 	PyObject* resultMatrix;
 	Matrix* matrix = checkArgs(left, right, scalar);
 	resultData = *matrix / scalar;
-	int* dims = new int[2];
-	dims[0] = matrix->row;
-	dims[1] = matrix->column;
-	return wrapMatrix(resultData, dims);
+	int dims[2] = { matrix->row, matrix->column };
+	return wrapMatrix(resultData, dims[0], dims[1]);
+}
+
+
+PyObject* PyMatrix::matrixMulMatrix(PyObject* left, PyObject* right) {
+	std::cout << "lofasz1" << std::endl;
+	float* resultData;
+	PyObject* resultMatrix;
+	Matrix* matrix;
+	matrix = (Matrix*)left;
+	Matrix* matrix2;
+	matrix2 = (Matrix*)right;
+	resultData = (*matrix) * (*matrix2);
+	int dims[2] = { matrix->row, matrix2->column };
+	return wrapMatrix(resultData, dims[0], dims[1]);
 }
 
 

@@ -6,11 +6,13 @@ arrVector = np.array([[3.111, 4.111, 4, 4, 4]], dtype=np.float32)
 arrVector1 = np.array([[1, 1, 1, 1, 1]], dtype=np.float32)
 arrVector3 = np.array([[2, 2, 2, 2, 2]], dtype=np.float32)
 arrVector4 = np.array([[6, 6, 6, 6, 6]], dtype=np.float32)
-arrMatrix = np.array([[1,1,1],[2,2,2],[3,3,3]], dtype=np.float32)
+arrMatrix = np.array([[1,2],[1,2]], dtype=np.float32)
+arrMatrix3 = np.array([[1,2],[1,2]], dtype=np.float32)
 arrMatrix2 = np.array([[6,6,6],[6,6,6],[6,6,6]], dtype=np.float32)
 
 matrix = VectorModule.matrix(arrMatrix)
 matrix2 = VectorModule.matrix(arrMatrix2)
+matrix3 = VectorModule.matrix(arrMatrix3)
 
 vector1 = VectorModule.vector(arrVector)
 
@@ -19,28 +21,29 @@ vector3 = VectorModule.vector(arrVector1)
 vector4 = VectorModule.vector(arrVector4)
 
 sumVector = vector1 + vector2
-
+print("lofasz")
+matrixMul = matrix * matrix3
+print("lofasz")
+print(matrixMul.toNumpy())
 #print(sumVector.toNumpy())
-sum = matrix + matrix2
-matrixDif = matrix - matrix2
+#sum = matrix + matrix2
+#matrixDif = matrix - matrix2
 
-product = 2.0 * vector1 * 3.0
-print(product.toNumpy())
-vectorProduct = vector1 * vector2
+#product = vector1 * 3.0
+#print(product.toNumpy())
+#vectorProduct = vector1 * vector2
 matrixDivision = matrix2 / 2.0
-
 sumVector = vector1 + vector2
-
 difference = vector1 - vector2
-matrixProduct = 2.0 * matrix * 2.0
-vectorDivision = vector4 / 2
+#matrixProduct = 2.0 * matrix * 2.0
+#print(matrixProduct.toNumpy())
+vectorDivision = vector4 / 2.0
 
-
-print(matrixDif.toNumpy())
+#print(matrixDif.toNumpy())
 #print(matrixDivision.toNumpy())
 #print(sumVector.toNumpy())
 #print(vectorProduct.toNumpy())
 #print(vectorDivision.toNumpy())
-print(sum.toNumpy())
+#print(sum.toNumpy())
 #print(difference.toNumpy())
 

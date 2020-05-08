@@ -20,8 +20,6 @@ float* Matrix::operator-(Matrix matrix) {
 	return doMatrixSumOrSubtract(*this, matrix, false);
 };
 
-
-
 float* Matrix::doMatrixSumOrSubtract(Matrix matrix1, Matrix matrix2, bool isSum) {
 	if (matrix1.row != matrix2.row || matrix1.column != matrix2.column)
 	{
@@ -73,6 +71,34 @@ float* Matrix::doMatrixMulOrDiv(Matrix matrix, float scalar, bool isDiv) {
 	for (int i = 0; i < matrixSize; i++)
 	{
 		resultData[i] = matrixData[i] * scalar;
+	}
+
+	return resultData;
+}
+
+float* Matrix::operator*(Matrix matrix) {
+	std::cout << "lofasz1" << std::endl;
+	return doMatrixMulMatrix(*this, matrix);
+}
+
+float* Matrix::doMatrixMulMatrix(Matrix matrix1, Matrix matrix2) {
+	std::cout << "lofasz1" << std::endl;
+	int newSize = matrix1.row * matrix2.column;
+	float* resultData = new float[newSize];
+	std::cout << "lofasz2" << std::endl;
+	PyArrayObject* thisArrayObject = (PyArrayObject*)matrix1.data;
+	float* thisData = (float*)PyArray_DATA(thisArrayObject);
+	PyArrayObject* matrixArrayObject = (PyArrayObject*)matrix2.data;
+	float* matrixData = (float*)PyArray_DATA(matrixArrayObject);
+
+	std::cout << "lofasz3" << std::endl;
+	for (int i = 0; i < matrix1.row; i++) {
+		for (int j = 0; j < matrix2.column; j++) {
+			resultData[i * matrix2.column + j] = 0;
+			for (int u = 0; u < matrix1.column; u++) {
+				resultData[i * matrix2.column + j] += thisData[i * matrix1.column + u] * matrixData[u * matrix2.column + j];
+			}
+		}
 	}
 
 	return resultData;

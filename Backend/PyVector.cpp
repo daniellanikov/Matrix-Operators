@@ -22,15 +22,13 @@ PyObject* PyVector::vectorInit(Matrix* self, PyObject* args, PyObject* kwds) {
 	if (pyObject == NULL)
 	{
 		PyErr_SetString(PyExc_BaseException, "Parse failed");
-		return NULL;
+		return (PyObject*)NULL;
 	}
 	int* dims = PyArray_SHAPE((PyArrayObject*)(pyObject));
 	if (dims[0] != 1 && dims[1] !=1)
 	{
-		std::cout << "dims0: " << dims[0] << std::endl;
-		std::cout << "dims1: " << dims[1] << std::endl;
 		PyErr_SetString(PyExc_BaseException, "Argument is not a vector");
-		return NULL;
+		return (PyObject*)NULL;
 	}
 	self->data = pyObject;
 	self->row = dims[0];
