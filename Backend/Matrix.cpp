@@ -2,6 +2,7 @@
 #include "Matrix.h"
 #include <arrayobject.h>
 #include <iostream>
+#include "Strassen.h"
 
 Matrix::Matrix(int row, int column, PyObject* data) {
 	this->row = row;
@@ -80,30 +81,50 @@ float* Matrix::doMatrixMulOrDiv(Matrix matrix, float scalar, bool isDiv) {
 }
 
 float* Matrix::operator*(Matrix matrix) {
-	return doMatrixMulMatrix(*this, matrix);
+	return doStrassen(*this, matrix);
 }
 
-float* Matrix::doMatrixMulMatrix(Matrix matrix1, Matrix matrix2) {
-	if (matrix1.column != matrix2.row) {
-		throw std::invalid_argument("Size mismatch");
+static float** toArray(float* data, int row, int column) {
+	float** result = new float* [row];
+	int columnNumber = 0;
+	for (int i = 0; i < row; i++)
+	{
+		float* resultRow = new float[column];
+		for (int j = 0; j < column; j++)
+		{
+			resultRow[j] = data[columnNumber];
+			columnNumber++;
+		}
+		result[i] = resultRow;
 	}
-	int newSize = matrix1.row * matrix2.column;
-	float* resultData = new float[newSize];
-	PyArrayObject* thisArrayObject = (PyArrayObject*)matrix1.data;
-	float* thisData = (float*)PyArray_DATA(thisArrayObject);
-	PyArrayObject* matrixArrayObject = (PyArrayObject*)matrix2.data;
-	float* matrixData = (float*)PyArray_DATA(matrixArrayObject);
+	return result;
+}
 
-	for (int i = 0; i < matrix1.row; i++) {
-		for (int j = 0; j < matrix2.column; j++) {
-			resultData[i * matrix2.column + j] = 0;
-			for (int u = 0; u < matrix1.column; u++) {
-				resultData[i * matrix2.column + j] +=
-					thisData[i * matrix1.column + u] *
-					matrixData[u * matrix2.column + j];
-			}
+static float* yarrAot(float** data, int row, int column) {
+	 
+	int columnNumber = 0;
+	float* result = new float[row * column];
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < column; j++)
+		{
+			result[columnNumber] = data[i][j];
+			columnNumber++;
 		}
 	}
+	return result;
+}
 
-	return resultData;
+float* Matrix::doStrassen(Matrix matrix1, Matrix matrix2) {
+		
+	PyArrayObject* thisArrayObject = (PyArrayObject*)matrix1.getData();
+	float* thisData = (float*)PyArray_DATA(thisArrayObject);
+	float** strassenInput1 = toArray(thisData, matrix1.getRow(), matrix1.getColumn());
+
+	PyArrayObject* thisArrayObject2 = (PyArrayObject*)matrix2.getData();
+	float* thisData2 = (float*)PyArray_DATA(thisArrayObject2);
+	float** strassenInput2 = toArray(thisData2, matrix2.getRow(), matrix2.getColumn());
+
+	float** result = Strassen::Calculate(strassenInput1, strassenInput2, matrix1.getRow(), matrix1.getColumn(), matrix2.getColumn());
+	return yarrAot(result, matrix1.getRow(), matrix2.getColumn());
 }

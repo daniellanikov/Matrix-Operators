@@ -25,6 +25,7 @@ public:
 	PyObject* getData();
 
 private:
+	float* doStrassen(Matrix, Matrix);
 	float* doMatrixSumOrSubtract(Matrix, Matrix, bool);
 	float* doMatrixMulOrDiv(Matrix, float, bool);
 	float* doMatrixMulMatrix(Matrix, Matrix);
