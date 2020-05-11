@@ -6,9 +6,9 @@ Python adapter layer: PyVector.cpp, PyMatrix.cpp
 Build script: module.py  
 
 
-master branch:  
+#### master branch:  
 naive M*M calculation is implemented.  
 
-feature.strassen branch:  
+#### feature.strassen branch:  
 M*M calculation is implemented with Strassen algorithm.  
 source: geeksforgeeks  
